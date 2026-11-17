@@ -123,6 +123,18 @@
       </div>
     </header>
 
+    <!-- NAVIGASI KHUSUS ROLE ADMIN (Switch Mode Pendaftaran / Penilaian) -->
+    <div id="adminTabNav" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-2 flex gap-2">
+      <button type="button" id="btnTabPembimbing" onclick="switchAdminTab('pembimbing')"
+        class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition cursor-pointer emerald-grad text-white shadow-sm">
+        Mode Pendaftaran (Pembimbing)
+      </button>
+      <button type="button" id="btnTabPenilai" onclick="switchAdminTab('penilai')"
+        class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition cursor-pointer text-slate-600 hover:bg-slate-100">
+        Mode Penilaian (Penguji)
+      </button>
+    </div>
+
     <!-- ================= VIEW 1: ROLE PEMBIMBING ================= -->
     <div id="pembimbingView" class="hidden space-y-6">
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -227,8 +239,8 @@
       
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
         <div>
-          <h2 class="font-bold text-slate-800 text-base">Pencarian Peserta Munaqosyah Anda</h2>
-          <p class="text-xs text-slate-500">Hanya menampilkan murid terdaftar yang ditugaskan kepada Anda. Jika nama murid sama lebih dari satu, perhatikan nama suratnya.</p>
+          <h2 class="font-bold text-slate-800 text-base">Pencarian Peserta Munaqosyah</h2>
+          <p class="text-xs text-slate-500" id="penilaiSubDesc">Hanya menampilkan murid terdaftar yang ditugaskan kepada Anda. Jika nama murid sama lebih dari satu, perhatikan nama suratnya.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -386,7 +398,7 @@
       const response = await fetch(GAS_WEBAPP_URL, {
         method: "POST",
         headers: {
-          "Content-Type": "text/plain;charset=utf-8" // Menghindari CORS preflight OPTIONS di Google Apps Script
+          "Content-Type": "text/plain;charset=utf-8"
         },
         body: JSON.stringify(bodyData)
       });
@@ -536,17 +548,45 @@
       document.getElementById('userRoleBadge').innerText = u.role;
       document.getElementById('userEmailDisplay').innerText = u.email;
 
-      const roleLower = u.role.toLowerCase();
-      if (roleLower === 'pembimbing') {
+      const roleLower = u.role.trim().toLowerCase();
+      const adminNav = document.getElementById('adminTabNav');
+
+      if (roleLower === 'admin') {
+        adminNav.classList.remove('hidden');
+        document.getElementById('penilaiSubDesc').innerText = 'Mode Admin: Menampilkan seluruh peserta munaqosyah terdaftar dari semua penguji.';
+        initPembimbingView();
+        initPenilaiView();
+        switchAdminTab('pembimbing');
+      } else if (roleLower === 'pembimbing') {
+        adminNav.classList.add('hidden');
         document.getElementById('pembimbingView').classList.remove('hidden');
         document.getElementById('penilaiView').classList.add('hidden');
         initPembimbingView();
       } else if (roleLower === 'penilai' || roleLower === 'penguji') {
+        adminNav.classList.add('hidden');
         document.getElementById('penilaiView').classList.remove('hidden');
         document.getElementById('pembimbingView').classList.add('hidden');
+        document.getElementById('penilaiSubDesc').innerText = 'Hanya menampilkan murid terdaftar yang ditugaskan kepada Anda. Jika nama murid sama lebih dari satu, perhatikan nama suratnya.';
         initPenilaiView();
       } else {
         Swal.fire('Akses Ditolak', 'Role "' + u.role + '" tidak dikenali sistem.', 'warning');
+      }
+    }
+
+    function switchAdminTab(tab) {
+      const btnPembimbing = document.getElementById('btnTabPembimbing');
+      const btnPenilai = document.getElementById('btnTabPenilai');
+
+      if (tab === 'pembimbing') {
+        document.getElementById('pembimbingView').classList.remove('hidden');
+        document.getElementById('penilaiView').classList.add('hidden');
+        btnPembimbing.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition cursor-pointer emerald-grad text-white shadow-sm';
+        btnPenilai.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition cursor-pointer text-slate-600 hover:bg-slate-100';
+      } else {
+        document.getElementById('penilaiView').classList.remove('hidden');
+        document.getElementById('pembimbingView').classList.add('hidden');
+        btnPenilai.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition cursor-pointer emerald-grad text-white shadow-sm';
+        btnPembimbing.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition cursor-pointer text-slate-600 hover:bg-slate-100';
       }
     }
 
@@ -623,7 +663,8 @@
         nilaiAkhlak: document.getElementById('regNilaiAkhlak').value,
         catatanAkhlak: document.getElementById('regCatatanAkhlak').value,
         catatanMurid: document.getElementById('regCatatanMurid').value,
-        loginUserNama: APP_STATE.user.nama
+        loginUserNama: APP_STATE.user.nama,
+        loginUserRole: APP_STATE.user.role
       };
 
       showLoading('Menyimpan pendaftaran & mengirim WA Penguji...');
@@ -641,6 +682,9 @@
           onSelectSurat();
           APP_STATE.munaqosyahList = res.munaqosyahList;
           renderRiwayatPembimbing();
+          if (APP_STATE.user.role.trim().toLowerCase() === 'admin') {
+            filterPesertaTerdaftar();
+          }
         } else {
           Swal.fire('Gagal', res.message, 'error');
         }
@@ -653,8 +697,12 @@
     function renderRiwayatPembimbing() {
       const tbody = document.getElementById('tabelRiwayatPembimbing');
       tbody.innerHTML = '';
+      const isAdmin = APP_STATE.user.role.trim().toLowerCase() === 'admin';
       const myName = APP_STATE.user.nama.toLowerCase();
-      const filtered = APP_STATE.munaqosyahList.filter(r => r.pembimbing.toLowerCase() === myName);
+      
+      const filtered = isAdmin 
+        ? APP_STATE.munaqosyahList 
+        : APP_STATE.munaqosyahList.filter(r => r.pembimbing.toLowerCase() === myName);
 
       if (filtered.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-slate-400">Belum ada data pendaftaran.</td></tr>';
@@ -688,10 +736,11 @@
       const select = document.getElementById('selectPesertaUjian');
       select.innerHTML = '<option value="">-- Pilih Peserta Terdaftar --</option>';
 
+      const isAdmin = APP_STATE.user.role.trim().toLowerCase() === 'admin';
       const namaPengujiLogin = APP_STATE.user.nama.trim().toLowerCase();
 
       const list = APP_STATE.munaqosyahList.filter(r => {
-        const isMyStudent = r.penguji.trim().toLowerCase() === namaPengujiLogin;
+        const isMyStudent = isAdmin || (r.penguji.trim().toLowerCase() === namaPengujiLogin);
         const matchKeyword = r.namaMurid.toLowerCase().includes(keyword) || r.nis.toLowerCase().includes(keyword);
         return isMyStudent && matchKeyword;
       });
@@ -700,7 +749,7 @@
         const opt = document.createElement('option');
         opt.value = "";
         opt.disabled = true;
-        opt.textContent = "Tidak ada peserta yang ditugaskan kepada Anda";
+        opt.textContent = isAdmin ? "Belum ada peserta terdaftar" : "Tidak ada peserta yang ditugaskan kepada Anda";
         select.appendChild(opt);
         return;
       }
@@ -802,7 +851,9 @@
         catatanKhaf: document.getElementById('evalCatKhaf').value,
         nilaiKeindahan: document.getElementById('evalKeindahan').value,
         catatanKeindahan: document.getElementById('evalCatKeindahan').value,
-        catatanPenguji: document.getElementById('evalCatPenguji').value
+        catatanPenguji: document.getElementById('evalCatPenguji').value,
+        loginUserNama: APP_STATE.user.nama,
+        loginUserRole: APP_STATE.user.role
       };
 
       showLoading('Menyimpan nilai & mengirim WA Pembimbing...');
@@ -817,6 +868,7 @@
           Swal.fire('Tersimpan!', res.message, 'success');
           APP_STATE.munaqosyahList = res.munaqosyahList;
           filterPesertaTerdaftar();
+          renderRiwayatPembimbing();
           document.getElementById('formPenilaianContainer').classList.add('hidden');
         } else {
           Swal.fire('Gagal', res.message, 'error');
