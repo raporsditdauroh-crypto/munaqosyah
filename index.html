@@ -22,8 +22,9 @@
     .emerald-grad { background: linear-gradient(135deg, #065f46 0%, #047857 100%); }
     @media print {
       body * { visibility: hidden; }
-      #areaCetakLaporan, #areaCetakLaporan * { visibility: visible; }
-      #areaCetakLaporan { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none !important; border: none !important; }
+      #areaCetakLaporan, #areaCetakLaporan *,
+      #areaCetakAbsensi, #areaCetakAbsensi * { visibility: visible; }
+      #areaCetakLaporan, #areaCetakAbsensi { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none !important; border: none !important; }
     }
   </style>
 </head>
@@ -309,7 +310,7 @@
           <div class="bg-emerald-50 border-b border-emerald-100 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 class="font-bold text-emerald-900 text-base">Daftar Hadir Murid</h2>
-              <p class="text-xs text-emerald-700">Catat kehadiran harian murid bimbingan Anda (Hadir, Izin, Sakit, atau Alpa).</p>
+              <p class="text-xs text-emerald-700">Pilih status kehadiran murid (Hadir, Izin, Sakit, atau Alpa). Data tersimpan dapat dipilih ulang tanggalnya untuk diedit.</p>
             </div>
             <div class="flex items-center gap-2">
               <label class="text-xs font-semibold text-emerald-900">Tanggal:</label>
@@ -320,11 +321,17 @@
 
           <form onsubmit="handleSimpanAbsensi(event)" class="p-6 space-y-4">
             <div class="flex flex-wrap justify-between items-center gap-2">
-              <span class="text-xs text-slate-500">Menampilkan daftar murid bimbingan Anda:</span>
-              <button type="button" onclick="setSemuaHadir()"
-                class="px-3 py-1.5 text-xs font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 rounded-xl transition cursor-pointer">
-                Tandai Semua Hadir
-              </button>
+              <span class="text-xs text-slate-500">Status awal dikosongkan. Pilih status tiap murid atau gunakan tombol cepat:</span>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="resetSemuaStatusAbsen()"
+                  class="px-3 py-1.5 text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl transition cursor-pointer">
+                  Kosongkan Semua
+                </button>
+                <button type="button" onclick="setSemuaHadir()"
+                  class="px-3 py-1.5 text-xs font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 rounded-xl transition cursor-pointer">
+                  Tandai Semua Hadir
+                </button>
+              </div>
             </div>
 
             <div class="overflow-x-auto border border-slate-200 rounded-xl">
@@ -346,29 +353,114 @@
             <div class="flex justify-end pt-2">
               <button type="submit"
                 class="emerald-grad hover:opacity-95 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md transition cursor-pointer text-sm">
-                Simpan Daftar Hadir
+                Simpan / Perbarui Daftar Hadir
               </button>
             </div>
           </form>
         </div>
 
-        <!-- Riwayat Absensi -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-          <h3 class="font-bold text-slate-800 text-sm mb-3">Riwayat Kehadiran Terbaru</h3>
+        <!-- MENU LAPORAN KEHADIRAN (HARIAN & BULANAN) + PRINT & PDF -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-3">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Mode Laporan</label>
+              <select id="modeLaporanAbsen" onchange="toggleFilterLaporanAbsen()"
+                class="px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold outline-none bg-white">
+                <option value="HARIAN">Laporan Harian</option>
+                <option value="BULANAN">Laporan Bulanan</option>
+              </select>
+            </div>
+            <div id="wrapFilterAbsenHarian">
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Pilih Tanggal</label>
+              <input type="date" id="filterAbsenTanggal" onchange="renderLaporanAbsensi()"
+                class="px-3 py-1.5 rounded-xl border border-slate-300 text-xs outline-none bg-white">
+            </div>
+            <div id="wrapFilterAbsenBulanan" class="hidden">
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Pilih Bulan</label>
+              <input type="month" id="filterAbsenBulan" onchange="renderLaporanAbsensi()"
+                class="px-3 py-1.5 rounded-xl border border-slate-300 text-xs outline-none bg-white">
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="downloadPdfAbsensi()"
+              class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm transition cursor-pointer">
+              Download PDF
+            </button>
+            <button type="button" onclick="printLaporanAbsensi()"
+              class="px-4 py-2 text-xs font-semibold text-white emerald-grad hover:opacity-95 rounded-xl shadow-sm transition cursor-pointer">
+              Print Laporan
+            </button>
+          </div>
+        </div>
+
+        <!-- Area Dokumen Laporan Kehadiran Siap Print / PDF -->
+        <div id="areaCetakAbsensi" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 space-y-5">
+          <div class="flex items-center gap-4 border-b-2 border-slate-800 pb-4">
+            <img id="lapAbsenLogoImg" src="" alt="Logo" class="w-14 h-14 object-contain hidden">
+            <div class="flex-1 text-center">
+              <h2 class="text-base font-bold uppercase tracking-wide text-slate-900">Laporan Kehadiran Tahfiz Al-Qur'an</h2>
+              <h3 class="text-sm font-bold text-emerald-800">SDIT DAUROH</h3>
+              <p id="lapAbsenPeriodeText" class="text-xs text-slate-600 mt-0.5">Periode: -</p>
+            </div>
+          </div>
+
+          <!-- Ringkasan H / I / S / A -->
+          <div class="grid grid-cols-4 gap-2 text-center text-xs">
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-2">
+              <span class="text-slate-500 block text-[10px] uppercase">Hadir</span>
+              <strong id="statAbsenHadir" class="text-emerald-700 text-base">0</strong>
+            </div>
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-2">
+              <span class="text-slate-500 block text-[10px] uppercase">Izin</span>
+              <strong id="statAbsenIzin" class="text-blue-700 text-base">0</strong>
+            </div>
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-2">
+              <span class="text-slate-500 block text-[10px] uppercase">Sakit</span>
+              <strong id="statAbsenSakit" class="text-amber-700 text-base">0</strong>
+            </div>
+            <div class="bg-rose-50 border border-rose-200 rounded-xl p-2">
+              <span class="text-slate-500 block text-[10px] uppercase">Alpa</span>
+              <strong id="statAbsenAlpa" class="text-rose-700 text-base">0</strong>
+            </div>
+          </div>
+
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
+            <table class="w-full text-left border-collapse text-[11px] border border-slate-300">
               <thead>
-                <tr class="bg-slate-50 border-y border-slate-200 text-slate-500 uppercase">
-                  <th class="py-2.5 px-3">Tanggal</th>
-                  <th class="py-2.5 px-3">NIS</th>
-                  <th class="py-2.5 px-3">Nama Murid</th>
-                  <th class="py-2.5 px-3">Kelas</th>
-                  <th class="py-2.5 px-3">Status</th>
-                  <th class="py-2.5 px-3">Keterangan</th>
+                <tr class="bg-slate-100 text-slate-800 font-bold uppercase">
+                  <th class="border border-slate-300 py-2 px-2 text-center w-9">No</th>
+                  <th class="border border-slate-300 py-2 px-2">Tanggal</th>
+                  <th class="border border-slate-300 py-2 px-2">NIS</th>
+                  <th class="border border-slate-300 py-2 px-2">Nama Murid</th>
+                  <th class="border border-slate-300 py-2 px-2">Kelas</th>
+                  <th class="border border-slate-300 py-2 px-2">Pembimbing</th>
+                  <th class="border border-slate-300 py-2 px-2 text-center">Status</th>
+                  <th class="border border-slate-300 py-2 px-2">Keterangan</th>
                 </tr>
               </thead>
-              <tbody id="tabelRiwayatAbsensi" class="divide-y divide-slate-100"></tbody>
+              <tbody id="tabelRiwayatAbsensi"></tbody>
             </table>
+          </div>
+
+          <div class="pt-4 flex justify-between text-xs">
+            <div class="text-center w-56 space-y-14">
+              <div>
+                <p class="text-slate-600">&nbsp;</p>
+                <p class="font-semibold text-slate-800">Pembimbing Tahfiz,</p>
+              </div>
+              <div>
+                <p id="lapAbsenNamaPembimbing" class="font-bold underline text-slate-900">-</p>
+              </div>
+            </div>
+            <div class="text-center w-56 space-y-14">
+              <div>
+                <p id="lapAbsenTitiMangsa" class="text-slate-700">Tangerang, 17 November 2026</p>
+                <p class="font-semibold text-slate-800">Kepala SDIT Dauroh,</p>
+              </div>
+              <div>
+                <p id="lapAbsenNamaKepsek" class="font-bold underline text-slate-900">Kepala SDIT Dauroh</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1362,13 +1454,18 @@
     }
 
     function initAbsensiView() {
+      const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
       const tglInput = document.getElementById('absenTanggal');
-      if (!tglInput.value) {
-        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
-        tglInput.value = today;
-      }
+      if (!tglInput.value) tglInput.value = today;
+
+      const filterHarian = document.getElementById('filterAbsenTanggal');
+      if (!filterHarian.value) filterHarian.value = today;
+
+      const filterBulanan = document.getElementById('filterAbsenBulan');
+      if (!filterBulanan.value) filterBulanan.value = today.slice(0, 7);
+
       renderTabelInputAbsensi();
-      renderRiwayatAbsensi();
+      renderLaporanAbsensi();
     }
 
     function getMuridBimbingan() {
@@ -1391,7 +1488,8 @@
 
       muridBimbingan.forEach((m, idx) => {
         const existing = APP_STATE.absensiList.find(a => a.tanggal === tglDipilih && a.nis === m.nis);
-        const stVal = existing ? existing.status : 'Hadir';
+        // Kosongkan status kehadiran saat pertama kali dibuka jika belum pernah disimpan pada tanggal tersebut
+        const stVal = existing ? existing.status : '';
         const ketVal = existing ? existing.keterangan : '';
 
         tbody.innerHTML += `
@@ -1402,6 +1500,7 @@
             <td class="py-2.5 px-3">${m.kelas}</td>
             <td class="py-2.5 px-3">
               <select class="absen-status px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-semibold text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+                <option value="" ${stVal === '' ? 'selected' : ''}>-- Pilih Status --</option>
                 <option value="Hadir" ${stVal === 'Hadir' ? 'selected' : ''}>Hadir</option>
                 <option value="Izin" ${stVal === 'Izin' ? 'selected' : ''}>Izin</option>
                 <option value="Sakit" ${stVal === 'Sakit' ? 'selected' : ''}>Sakit</option>
@@ -1423,6 +1522,12 @@
       });
     }
 
+    function resetSemuaStatusAbsen() {
+      document.querySelectorAll('.absen-status').forEach(sel => {
+        sel.value = '';
+      });
+    }
+
     async function handleSimpanAbsensi(e) {
       e.preventDefault();
       const rows = document.querySelectorAll('.absen-row');
@@ -1432,19 +1537,36 @@
       }
 
       const items = [];
+      let adaKosong = false;
       rows.forEach(tr => {
-        items.push({
-          nis: tr.getAttribute('data-nis'),
-          namaMurid: tr.getAttribute('data-nama'),
-          kelas: tr.getAttribute('data-kelas'),
-          pembimbing: tr.getAttribute('data-pembimbing'),
-          status: tr.querySelector('.absen-status').value,
-          keterangan: tr.querySelector('.absen-ket').value
-        });
+        const statusVal = tr.querySelector('.absen-status').value;
+        if (!statusVal) {
+          adaKosong = true;
+        } else {
+          items.push({
+            nis: tr.getAttribute('data-nis'),
+            namaMurid: tr.getAttribute('data-nama'),
+            kelas: tr.getAttribute('data-kelas'),
+            pembimbing: tr.getAttribute('data-pembimbing'),
+            status: statusVal,
+            keterangan: tr.querySelector('.absen-ket').value
+          });
+        }
       });
 
+      if (items.length === 0) {
+        Swal.fire('Status Belum Dipilih', 'Silakan pilih status kehadiran (Hadir/Izin/Sakit/Alpa) terlebih dahulu.', 'warning');
+        return;
+      }
+
+      if (adaKosong) {
+        Swal.fire('Belum Lengkap', 'Masih ada murid yang status kehadirannya belum dipilih. Lengkapi semua baris sebelum menyimpan.', 'warning');
+        return;
+      }
+
+      const tglSimpan = document.getElementById('absenTanggal').value;
       const payload = {
-        tanggal: document.getElementById('absenTanggal').value,
+        tanggal: tglSimpan,
         items: items,
         loginUserNama: APP_STATE.user.nama,
         loginUserRole: APP_STATE.user.role
@@ -1456,7 +1578,8 @@
         hideLoading();
         if (res.status) {
           APP_STATE.absensiList = res.absensiList || [];
-          renderRiwayatAbsensi();
+          document.getElementById('filterAbsenTanggal').value = tglSimpan;
+          renderLaporanAbsensi();
           Swal.fire('Tersimpan!', res.message, 'success');
         } else {
           Swal.fire('Gagal', res.message, 'error');
@@ -1467,15 +1590,64 @@
       }
     }
 
-    function renderRiwayatAbsensi() {
+    function toggleFilterLaporanAbsen() {
+      const mode = document.getElementById('modeLaporanAbsen').value;
+      if (mode === 'HARIAN') {
+        document.getElementById('wrapFilterAbsenHarian').classList.remove('hidden');
+        document.getElementById('wrapFilterAbsenBulanan').classList.add('hidden');
+      } else {
+        document.getElementById('wrapFilterAbsenBulanan').classList.remove('hidden');
+        document.getElementById('wrapFilterAbsenHarian').classList.add('hidden');
+      }
+      renderLaporanAbsensi();
+    }
+
+    function renderLaporanAbsensi() {
+      const p = APP_STATE.profile || {};
+      const logoEl = document.getElementById('lapAbsenLogoImg');
+      if (p.logo) {
+        logoEl.src = p.logo;
+        logoEl.classList.remove('hidden');
+      } else {
+        logoEl.classList.add('hidden');
+      }
+      document.getElementById('lapAbsenTitiMangsa').innerText = p.titiMangsa || 'Tangerang, 17 November 2026';
+      document.getElementById('lapAbsenNamaKepsek').innerText = p.kepalaSekolah || 'Kepala SDIT Dauroh';
+      document.getElementById('lapAbsenNamaPembimbing').innerText = APP_STATE.user ? APP_STATE.user.nama : '-';
+
+      const mode = document.getElementById('modeLaporanAbsen').value;
+      const tglFilter = document.getElementById('filterAbsenTanggal').value;
+      const blnFilter = document.getElementById('filterAbsenBulan').value;
+
+      let filtered = [];
+      if (mode === 'HARIAN') {
+        document.getElementById('lapAbsenPeriodeText').innerText = 'Laporan Harian — Tanggal: ' + (tglFilter || '-');
+        filtered = APP_STATE.absensiList.filter(a => a.tanggal === tglFilter);
+      } else {
+        document.getElementById('lapAbsenPeriodeText').innerText = 'Laporan Bulanan — Bulan: ' + (blnFilter || '-');
+        filtered = APP_STATE.absensiList.filter(a => a.tanggal && a.tanggal.startsWith(blnFilter));
+      }
+
+      let cH = 0, cI = 0, cS = 0, cA = 0;
+      filtered.forEach(a => {
+        if (a.status === 'Hadir') cH++;
+        else if (a.status === 'Izin') cI++;
+        else if (a.status === 'Sakit') cS++;
+        else if (a.status === 'Alpa') cA++;
+      });
+      document.getElementById('statAbsenHadir').innerText = cH;
+      document.getElementById('statAbsenIzin').innerText = cI;
+      document.getElementById('statAbsenSakit').innerText = cS;
+      document.getElementById('statAbsenAlpa').innerText = cA;
+
       const tbody = document.getElementById('tabelRiwayatAbsensi');
       tbody.innerHTML = '';
-      if (APP_STATE.absensiList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-slate-400">Belum ada riwayat absensi.</td></tr>';
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="border border-slate-300 py-4 text-center text-slate-400">Belum ada data kehadiran pada periode ini.</td></tr>';
         return;
       }
 
-      APP_STATE.absensiList.slice(0, 30).forEach(a => {
+      filtered.forEach((a, idx) => {
         let badgeCls = 'bg-emerald-100 text-emerald-700';
         if (a.status === 'Izin') badgeCls = 'bg-blue-100 text-blue-700';
         else if (a.status === 'Sakit') badgeCls = 'bg-amber-100 text-amber-700';
@@ -1483,14 +1655,44 @@
 
         tbody.innerHTML += `
           <tr>
-            <td class="py-2 px-3 font-medium">${a.tanggal}</td>
-            <td class="py-2 px-3">${a.nis}</td>
-            <td class="py-2 px-3 font-semibold">${a.namaMurid}</td>
-            <td class="py-2 px-3">${a.kelas}</td>
-            <td class="py-2 px-3"><span class="px-2 py-0.5 rounded-full font-semibold ${badgeCls}">${a.status}</span></td>
-            <td class="py-2 px-3 text-slate-500">${a.keterangan || '-'}</td>
+            <td class="border border-slate-300 py-1.5 px-2 text-center">${idx + 1}</td>
+            <td class="border border-slate-300 py-1.5 px-2">${a.tanggal}</td>
+            <td class="border border-slate-300 py-1.5 px-2">${a.nis}</td>
+            <td class="border border-slate-300 py-1.5 px-2 font-semibold">${a.namaMurid}</td>
+            <td class="border border-slate-300 py-1.5 px-2">${a.kelas}</td>
+            <td class="border border-slate-300 py-1.5 px-2">${a.pembimbing}</td>
+            <td class="border border-slate-300 py-1.5 px-2 text-center"><span class="px-2 py-0.5 rounded-full font-semibold ${badgeCls}">${a.status}</span></td>
+            <td class="border border-slate-300 py-1.5 px-2 text-slate-600">${a.keterangan || '-'}</td>
           </tr>
         `;
+      });
+    }
+
+    function printLaporanAbsensi() {
+      const lapUtama = document.getElementById('areaCetakLaporan');
+      const prevId = lapUtama.id;
+      lapUtama.id = 'areaCetakLaporanPaused';
+      window.print();
+      lapUtama.id = prevId;
+    }
+
+    function downloadPdfAbsensi() {
+      const element = document.getElementById('areaCetakAbsensi');
+      const mode = document.getElementById('modeLaporanAbsen').value;
+      const periode = mode === 'HARIAN'
+        ? document.getElementById('filterAbsenTanggal').value
+        : document.getElementById('filterAbsenBulan').value;
+
+      const opt = {
+        margin: 0.4,
+        filename: `Laporan_Kehadiran_${mode}_${periode || 'SDIT_Dauroh'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+      };
+      showLoading('Membuat PDF Laporan Kehadiran...');
+      html2pdf().set(opt).from(element).save().then(() => {
+        hideLoading();
       });
     }
 
