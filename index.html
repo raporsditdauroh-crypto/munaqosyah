@@ -6,10 +6,16 @@
   <title>Munaqosyah SDIT Dauroh</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f3f6f4; }
     .emerald-grad { background: linear-gradient(135deg, #065f46 0%, #047857 100%); }
+    @media print {
+      body * { visibility: hidden; }
+      #areaCetakLaporan, #areaCetakLaporan * { visibility: visible; }
+      #areaCetakLaporan { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none !important; border: none !important; }
+    }
   </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen">
@@ -123,15 +129,31 @@
       </div>
     </header>
 
-    <!-- NAVIGASI KHUSUS ROLE ADMIN (Switch Mode Pendaftaran / Penilaian) -->
-    <div id="adminTabNav" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-2 flex gap-2">
+    <!-- NAVIGASI KHUSUS ROLE ADMIN -->
+    <div id="adminTabNav" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
       <button type="button" id="btnTabPembimbing" onclick="switchAdminTab('pembimbing')"
-        class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition cursor-pointer emerald-grad text-white shadow-sm">
-        Mode Pendaftaran (Pembimbing)
+        class="py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer emerald-grad text-white shadow-sm">
+        Pendaftaran
       </button>
       <button type="button" id="btnTabPenilai" onclick="switchAdminTab('penilai')"
-        class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition cursor-pointer text-slate-600 hover:bg-slate-100">
-        Mode Penilaian (Penguji)
+        class="py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer text-slate-600 hover:bg-slate-100">
+        Penilaian
+      </button>
+      <button type="button" id="btnTabInputMurid" onclick="switchAdminTab('inputMurid')"
+        class="py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer text-slate-600 hover:bg-slate-100">
+        Input Murid
+      </button>
+      <button type="button" id="btnTabInputUser" onclick="switchAdminTab('inputUser')"
+        class="py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer text-slate-600 hover:bg-slate-100">
+        Input User
+      </button>
+      <button type="button" id="btnTabProfile" onclick="switchAdminTab('profile')"
+        class="py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer text-slate-600 hover:bg-slate-100">
+        Profile
+      </button>
+      <button type="button" id="btnTabLaporan" onclick="switchAdminTab('laporan')"
+        class="py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer text-slate-600 hover:bg-slate-100">
+        Laporan
       </button>
     </div>
 
@@ -373,12 +395,252 @@
       </div>
 
     </div>
+
+    <!-- ================= VIEW 3 (ADMIN): INPUT MURID ================= -->
+    <div id="inputMuridView" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-emerald-50 border-b border-emerald-100 px-6 py-4">
+          <h2 class="font-bold text-emerald-900 text-base">Input Data Murid Baru</h2>
+          <p class="text-xs text-emerald-700">Data akan tersimpan ke sheet DATA MURID dan otomatis muncul di form pendaftaran.</p>
+        </div>
+        <form id="formInputMurid" onsubmit="handleTambahMurid(event)" class="p-6 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">NIS / NISN *</label>
+              <input type="text" id="inMuridNis" required placeholder="Contoh: 24251124"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Murid *</label>
+              <input type="text" id="inMuridNama" required placeholder="Nama lengkap murid"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Kelas *</label>
+              <input type="text" id="inMuridKelas" required placeholder="Contoh: 3 (Tiga) Al - Biruni"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Pembimbing *</label>
+              <input type="text" id="inMuridPembimbing" required placeholder="Nama lengkap pembimbing"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Penguji *</label>
+              <input type="text" id="inMuridPenguji" required placeholder="Nama lengkap penguji"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+            </div>
+          </div>
+          <div class="flex justify-end pt-2">
+            <button type="submit" class="emerald-grad hover:opacity-95 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md transition cursor-pointer text-sm">
+              Simpan Data Murid
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h3 class="font-bold text-slate-800 text-sm mb-3">Daftar Murid Terdaftar (<span id="countMurid">0</span>)</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-50 border-y border-slate-200 text-slate-500 uppercase">
+                <th class="py-2.5 px-3">NIS/NISN</th>
+                <th class="py-2.5 px-3">Nama Murid</th>
+                <th class="py-2.5 px-3">Kelas</th>
+                <th class="py-2.5 px-3">Pembimbing</th>
+                <th class="py-2.5 px-3">Penguji</th>
+              </tr>
+            </thead>
+            <tbody id="tabelDaftarMuridAdmin" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= VIEW 4 (ADMIN): INPUT USER ================= -->
+    <div id="inputUserView" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-emerald-50 border-b border-emerald-100 px-6 py-4">
+          <h2 class="font-bold text-emerald-900 text-base">Input Data User Aplikasi</h2>
+          <p class="text-xs text-emerald-700">Tambahkan akun Pembimbing, Penilai, atau Admin baru (Password awal: 1234567890).</p>
+        </div>
+        <form id="formInputUser" onsubmit="handleTambahUser(event)" class="p-6 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Email *</label>
+              <input type="email" id="inUserEmail" required placeholder="nama@sditdauroh.sch.id"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Nama User *</label>
+              <input type="text" id="inUserNama" required placeholder="Nama lengkap (sesuai data murid)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">No WhatsApp *</label>
+              <input type="tel" id="inUserWa" required placeholder="081234567890"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Role *</label>
+              <select id="inUserRole" required
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                <option value="Pembimbing">Pembimbing</option>
+                <option value="Penilai">Penilai</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex justify-end pt-2">
+            <button type="submit" class="emerald-grad hover:opacity-95 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md transition cursor-pointer text-sm">
+              Simpan User Baru
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h3 class="font-bold text-slate-800 text-sm mb-3">Daftar Pengguna Terdaftar (<span id="countUser">0</span>)</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-50 border-y border-slate-200 text-slate-500 uppercase">
+                <th class="py-2.5 px-3">Email</th>
+                <th class="py-2.5 px-3">Nama User</th>
+                <th class="py-2.5 px-3">No WhatsApp</th>
+                <th class="py-2.5 px-3">Role</th>
+              </tr>
+            </thead>
+            <tbody id="tabelDaftarUserAdmin" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= VIEW 5 (ADMIN): PROFILE SEKOLAH ================= -->
+    <div id="profileView" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-emerald-50 border-b border-emerald-100 px-6 py-4">
+          <h2 class="font-bold text-emerald-900 text-base">Pengaturan Profile & Kop Laporan</h2>
+          <p class="text-xs text-emerald-700">Atur logo sekolah, nama Kepala Sekolah, dan titi mangsa yang akan tampil di cetakan laporan.</p>
+        </div>
+        <form id="formProfile" onsubmit="handleSimpanProfile(event)" class="p-6 space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Upload Logo Laporan (PNG / JPG)</label>
+                <input type="file" id="inProfileLogoFile" accept="image/*" onchange="previewLogoFile(event)"
+                  class="w-full text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                <p class="text-[11px] text-slate-400 mt-1">Gambar otomatis dikompres agar tersimpan cepat di Spreadsheet.</p>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Kepala Sekolah *</label>
+                <input type="text" id="inProfileKepsek" required placeholder="Contoh: Ustadz Ahmad Fauzi, S.Pd.I"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Titi Mangsa Laporan *</label>
+                <input type="text" id="inProfileTitiMangsa" required placeholder="Contoh: Tangerang, 17 November 2026"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+              </div>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center text-center min-h-[180px]">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase mb-2">Preview Logo Laporan</span>
+              <img id="previewLogoImg" src="" alt="Logo Sekolah" class="max-h-28 object-contain hidden rounded-lg">
+              <div id="previewLogoPlaceholder" class="text-xs text-slate-400">Belum ada logo diunggah</div>
+            </div>
+          </div>
+          <div class="flex justify-end pt-2">
+            <button type="submit" class="emerald-grad hover:opacity-95 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md transition cursor-pointer text-sm">
+              Simpan Pengaturan Profile
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= VIEW 6 (ADMIN): LAPORAN MUNAQOSYAH ================= -->
+    <div id="laporanView" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <input type="text" id="filterLaporanKeyword" onkeyup="renderTabelLaporan()" placeholder="Filter Nama / Kelas / Surat..."
+            class="px-3.5 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+          <select id="filterLaporanStatus" onchange="renderTabelLaporan()"
+            class="px-3.5 py-2 rounded-xl border border-slate-300 text-xs outline-none bg-white">
+            <option value="ALL">Semua Status</option>
+            <option value="Lulus">Lulus</option>
+            <option value="Tidak Lulus">Tidak Lulus</option>
+            <option value="Proses">Proses Ujian</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="simpanPdfLaporan()"
+            class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm transition cursor-pointer">
+            Simpan PDF
+          </button>
+          <button type="button" onclick="window.print()"
+            class="px-4 py-2 text-xs font-semibold text-white emerald-grad hover:opacity-95 rounded-xl shadow-sm transition cursor-pointer">
+            Print Laporan
+          </button>
+        </div>
+      </div>
+
+      <!-- Area Dokumen Laporan Siap Cetak / PDF -->
+      <div id="areaCetakLaporan" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 space-y-6">
+        <!-- Kop Surat -->
+        <div class="flex items-center gap-4 border-b-2 border-slate-800 pb-4">
+          <img id="lapLogoImg" src="" alt="Logo" class="w-16 h-16 object-contain hidden">
+          <div class="flex-1 text-center">
+            <h2 class="text-lg font-bold uppercase tracking-wide text-slate-900">Laporan Hasil Munaqosyah Tahfiz Al-Qur'an</h2>
+            <h3 class="text-base font-bold text-emerald-800">SDIT DAUROH</h3>
+            <p class="text-xs text-slate-500">Tahun Ajaran 2026 - 2027</p>
+          </div>
+        </div>
+
+        <!-- Tabel Rekap Nilai -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-[11px] border border-slate-300">
+            <thead>
+              <tr class="bg-slate-100 text-slate-800 font-bold uppercase">
+                <th class="border border-slate-300 py-2 px-2 text-center">No</th>
+                <th class="border border-slate-300 py-2 px-2">NIS</th>
+                <th class="border border-slate-300 py-2 px-2">Nama Murid</th>
+                <th class="border border-slate-300 py-2 px-2">Kelas</th>
+                <th class="border border-slate-300 py-2 px-2">Surat (Juz)</th>
+                <th class="border border-slate-300 py-2 px-2">Pembimbing</th>
+                <th class="border border-slate-300 py-2 px-2">Penguji</th>
+                <th class="border border-slate-300 py-2 px-2 text-center">Nilai</th>
+                <th class="border border-slate-300 py-2 px-2 text-center">Predikat</th>
+                <th class="border border-slate-300 py-2 px-2 text-center">Keterangan</th>
+              </tr>
+            </thead>
+            <tbody id="tabelBodyLaporan"></tbody>
+          </table>
+        </div>
+
+        <!-- Tanda Tangan Kepala Sekolah -->
+        <div class="pt-6 flex justify-end">
+          <div class="text-center text-xs w-64 space-y-16">
+            <div>
+              <p id="lapTitiMangsa" class="text-slate-700">Tangerang, 17 November 2026</p>
+              <p class="font-semibold text-slate-800">Kepala SDIT Dauroh,</p>
+            </div>
+            <div>
+              <p id="lapNamaKepsek" class="font-bold underline text-slate-900">Kepala SDIT Dauroh</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
     // ================= KONFIGURASI API GOOGLE APPS SCRIPT =================
     // Tempelkan URL Web App (/exec) dari Google Apps Script Anda di bawah ini:
-    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxc16gt9qLdb0KaA60LntRQ-mdHx6iapPBr8VefXC1oJ3IfEz23dYUTdbxiktUzHeuN/exec";
+    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzH0VwIYdMhhUqrICH9W5WwFH6-tW4Jv-AhB6Uccn_IiJbUSGa_C6tmK-vyPcdRbVXT/exec";
     // =====================================================================
 
     let APP_STATE = {
@@ -386,6 +648,9 @@
       muridList: [],
       suratList: [],
       munaqosyahList: [],
+      userList: [],
+      profile: { logo: '', kepalaSekolah: 'Kepala SDIT Dauroh', titiMangsa: 'Tangerang, 17 November 2026' },
+      uploadedLogoBase64: undefined,
       selectedAkhlak: 0
     };
 
@@ -475,6 +740,8 @@
         APP_STATE.muridList = res.muridList || [];
         APP_STATE.suratList = res.suratList || [];
         APP_STATE.munaqosyahList = res.munaqosyahList || [];
+        APP_STATE.userList = res.userList || [];
+        if (res.profile) APP_STATE.profile = res.profile;
 
         renderDashboard();
       } catch (err) {
@@ -556,6 +823,7 @@
         document.getElementById('penilaiSubDesc').innerText = 'Mode Admin: Menampilkan seluruh peserta munaqosyah terdaftar dari semua penguji.';
         initPembimbingView();
         initPenilaiView();
+        initAdminViews();
         switchAdminTab('pembimbing');
       } else if (roleLower === 'pembimbing') {
         adminNav.classList.add('hidden');
@@ -574,20 +842,251 @@
     }
 
     function switchAdminTab(tab) {
-      const btnPembimbing = document.getElementById('btnTabPembimbing');
-      const btnPenilai = document.getElementById('btnTabPenilai');
+      const tabs = {
+        pembimbing: { view: 'pembimbingView', btn: 'btnTabPembimbing' },
+        penilai: { view: 'penilaiView', btn: 'btnTabPenilai' },
+        inputMurid: { view: 'inputMuridView', btn: 'btnTabInputMurid' },
+        inputUser: { view: 'inputUserView', btn: 'btnTabInputUser' },
+        profile: { view: 'profileView', btn: 'btnTabProfile' },
+        laporan: { view: 'laporanView', btn: 'btnTabLaporan' }
+      };
 
-      if (tab === 'pembimbing') {
-        document.getElementById('pembimbingView').classList.remove('hidden');
-        document.getElementById('penilaiView').classList.add('hidden');
-        btnPembimbing.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition cursor-pointer emerald-grad text-white shadow-sm';
-        btnPenilai.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition cursor-pointer text-slate-600 hover:bg-slate-100';
-      } else {
-        document.getElementById('penilaiView').classList.remove('hidden');
-        document.getElementById('pembimbingView').classList.add('hidden');
-        btnPenilai.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition cursor-pointer emerald-grad text-white shadow-sm';
-        btnPembimbing.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition cursor-pointer text-slate-600 hover:bg-slate-100';
+      Object.keys(tabs).forEach(key => {
+        const elView = document.getElementById(tabs[key].view);
+        const elBtn = document.getElementById(tabs[key].btn);
+        if (key === tab) {
+          elView.classList.remove('hidden');
+          elBtn.className = 'py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer emerald-grad text-white shadow-sm';
+        } else {
+          elView.classList.add('hidden');
+          elBtn.className = 'py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer text-slate-600 hover:bg-slate-100';
+        }
+      });
+
+      if (tab === 'laporan') renderTabelLaporan();
+    }
+
+    // ================= INISIALISASI & LOGIKA MENU ADMIN =================
+    function initAdminViews() {
+      renderTabelMuridAdmin();
+      renderTabelUserAdmin();
+      loadProfileToForm();
+      renderTabelLaporan();
+    }
+
+    function renderTabelMuridAdmin() {
+      const tbody = document.getElementById('tabelDaftarMuridAdmin');
+      document.getElementById('countMurid').innerText = APP_STATE.muridList.length;
+      tbody.innerHTML = '';
+      if (APP_STATE.muridList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-slate-400">Belum ada data murid.</td></tr>';
+        return;
       }
+      APP_STATE.muridList.forEach(m => {
+        tbody.innerHTML += `
+          <tr>
+            <td class="py-2 px-3 font-medium">${m.nis}</td>
+            <td class="py-2 px-3 font-semibold">${m.nama}</td>
+            <td class="py-2 px-3">${m.kelas}</td>
+            <td class="py-2 px-3">${m.pembimbing}</td>
+            <td class="py-2 px-3">${m.penguji}</td>
+          </tr>
+        `;
+      });
+    }
+
+    async function handleTambahMurid(e) {
+      e.preventDefault();
+      const payload = {
+        nis: document.getElementById('inMuridNis').value,
+        namaMurid: document.getElementById('inMuridNama').value,
+        kelas: document.getElementById('inMuridKelas').value,
+        pembimbing: document.getElementById('inMuridPembimbing').value,
+        penguji: document.getElementById('inMuridPenguji').value
+      };
+
+      showLoading('Menyimpan data murid...');
+      try {
+        const res = await callGasApi({ action: 'tambahMurid', payload });
+        hideLoading();
+        if (res.status) {
+          Swal.fire('Berhasil!', res.message, 'success');
+          document.getElementById('formInputMurid').reset();
+          APP_STATE.muridList = res.muridList;
+          renderTabelMuridAdmin();
+          initPembimbingView();
+        } else {
+          Swal.fire('Gagal', res.message, 'error');
+        }
+      } catch (err) {
+        hideLoading();
+        Swal.fire('Error', err.message, 'error');
+      }
+    }
+
+    function renderTabelUserAdmin() {
+      const tbody = document.getElementById('tabelDaftarUserAdmin');
+      document.getElementById('countUser').innerText = APP_STATE.userList.length;
+      tbody.innerHTML = '';
+      APP_STATE.userList.forEach(u => {
+        tbody.innerHTML += `
+          <tr>
+            <td class="py-2 px-3">${u.email}</td>
+            <td class="py-2 px-3 font-semibold">${u.nama}</td>
+            <td class="py-2 px-3">${u.wa}</td>
+            <td class="py-2 px-3"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">${u.role}</span></td>
+          </tr>
+        `;
+      });
+    }
+
+    async function handleTambahUser(e) {
+      e.preventDefault();
+      const payload = {
+        email: document.getElementById('inUserEmail').value,
+        nama: document.getElementById('inUserNama').value,
+        wa: document.getElementById('inUserWa').value,
+        role: document.getElementById('inUserRole').value
+      };
+
+      showLoading('Menyimpan user baru...');
+      try {
+        const res = await callGasApi({ action: 'tambahUser', payload });
+        hideLoading();
+        if (res.status) {
+          Swal.fire('Berhasil!', res.message, 'success');
+          document.getElementById('formInputUser').reset();
+          APP_STATE.userList = res.userList;
+          renderTabelUserAdmin();
+        } else {
+          Swal.fire('Gagal', res.message, 'error');
+        }
+      } catch (err) {
+        hideLoading();
+        Swal.fire('Error', err.message, 'error');
+      }
+    }
+
+    function loadProfileToForm() {
+      const p = APP_STATE.profile;
+      document.getElementById('inProfileKepsek').value = p.kepalaSekolah || '';
+      document.getElementById('inProfileTitiMangsa').value = p.titiMangsa || '';
+      if (p.logo) {
+        document.getElementById('previewLogoImg').src = p.logo;
+        document.getElementById('previewLogoImg').classList.remove('hidden');
+        document.getElementById('previewLogoPlaceholder').classList.add('hidden');
+      }
+    }
+
+    function previewLogoFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxW = 200;
+          const scale = maxW / img.width;
+          canvas.width = maxW;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const compressed = canvas.toDataURL('image/png', 0.8);
+          APP_STATE.uploadedLogoBase64 = compressed;
+          document.getElementById('previewLogoImg').src = compressed;
+          document.getElementById('previewLogoImg').classList.remove('hidden');
+          document.getElementById('previewLogoPlaceholder').classList.add('hidden');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function handleSimpanProfile(e) {
+      e.preventDefault();
+      const payload = {
+        logo: APP_STATE.uploadedLogoBase64 !== undefined ? APP_STATE.uploadedLogoBase64 : APP_STATE.profile.logo,
+        kepalaSekolah: document.getElementById('inProfileKepsek').value,
+        titiMangsa: document.getElementById('inProfileTitiMangsa').value
+      };
+
+      showLoading('Menyimpan profile sekolah...');
+      try {
+        const res = await callGasApi({ action: 'simpanProfile', payload });
+        hideLoading();
+        if (res.status) {
+          APP_STATE.profile = res.profile;
+          Swal.fire('Berhasil!', res.message, 'success');
+          renderTabelLaporan();
+        } else {
+          Swal.fire('Gagal', res.message, 'error');
+        }
+      } catch (err) {
+        hideLoading();
+        Swal.fire('Error', err.message, 'error');
+      }
+    }
+
+    function renderTabelLaporan() {
+      const p = APP_STATE.profile;
+      const lapLogo = document.getElementById('lapLogoImg');
+      if (p.logo) {
+        lapLogo.src = p.logo;
+        lapLogo.classList.remove('hidden');
+      } else {
+        lapLogo.classList.add('hidden');
+      }
+      document.getElementById('lapTitiMangsa').innerText = p.titiMangsa || 'Tangerang, 17 November 2026';
+      document.getElementById('lapNamaKepsek').innerText = p.kepalaSekolah || 'Kepala SDIT Dauroh';
+
+      const kw = (document.getElementById('filterLaporanKeyword')?.value || '').toLowerCase();
+      const st = document.getElementById('filterLaporanStatus')?.value || 'ALL';
+      const tbody = document.getElementById('tabelBodyLaporan');
+      tbody.innerHTML = '';
+
+      const filtered = APP_STATE.munaqosyahList.filter(r => {
+        const matchKw = r.namaMurid.toLowerCase().includes(kw) || r.kelas.toLowerCase().includes(kw) || r.namaSurat.toLowerCase().includes(kw);
+        const matchSt = st === 'ALL' || (st === 'Proses' ? r.nilaiAkhir === '' : r.keterangan === st);
+        return matchKw && matchSt;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="border border-slate-300 py-4 text-center text-slate-400">Tidak ada data laporan yang sesuai.</td></tr>';
+        return;
+      }
+
+      filtered.forEach((r, idx) => {
+        tbody.innerHTML += `
+          <tr>
+            <td class="border border-slate-300 py-1.5 px-2 text-center">${idx + 1}</td>
+            <td class="border border-slate-300 py-1.5 px-2">${r.nis}</td>
+            <td class="border border-slate-300 py-1.5 px-2 font-semibold">${r.namaMurid}</td>
+            <td class="border border-slate-300 py-1.5 px-2">${r.kelas}</td>
+            <td class="border border-slate-300 py-1.5 px-2">${r.namaSurat} (Juz ${r.juz})</td>
+            <td class="border border-slate-300 py-1.5 px-2">${r.pembimbing}</td>
+            <td class="border border-slate-300 py-1.5 px-2">${r.penguji}</td>
+            <td class="border border-slate-300 py-1.5 px-2 text-center font-bold">${r.nilaiAkhir !== '' ? r.nilaiAkhir : '-'}</td>
+            <td class="border border-slate-300 py-1.5 px-2 text-center font-bold">${r.predikat || '-'}</td>
+            <td class="border border-slate-300 py-1.5 px-2 text-center">${r.keterangan || '-'}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function simpanPdfLaporan() {
+      const element = document.getElementById('areaCetakLaporan');
+      const opt = {
+        margin: 10,
+        filename: 'Laporan_Munaqosyah_SDIT_Dauroh.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
+      showLoading('Membuat file PDF...');
+      html2pdf().set(opt).from(element).save().then(() => {
+        hideLoading();
+      });
     }
 
     // ================= LOGIKA UI PEMBIMBING =================
