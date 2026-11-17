@@ -2,8 +2,17 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Munaqosyah SDIT Dauroh</title>
+  
+  <!-- Pengaturan PWA Android & iPhone (iOS) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#065f46">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Munaqosyah">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3145/3145765.png">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -256,7 +265,7 @@
       </div>
     </div>
 
-    <!-- ================= VIEW 2: ROLE PENILAI (PENGUJI) ================= -->
+    <!-- ================= VIEW 2: ROLE PENGUJI ================= -->
     <div id="penilaiView" class="hidden space-y-6">
       
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
@@ -489,7 +498,7 @@
               <select id="inUserRole" required
                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
                 <option value="Pembimbing">Pembimbing</option>
-                <option value="Penilai">Penilai</option>
+                <option value="Penguji">Penguji</option>
                 <option value="Admin">Admin</option>
               </select>
             </div>
@@ -640,7 +649,7 @@
   <script>
     // ================= KONFIGURASI API GOOGLE APPS SCRIPT =================
     // Tempelkan URL Web App (/exec) dari Google Apps Script Anda di bawah ini:
-    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzH0VwIYdMhhUqrICH9W5WwFH6-tW4Jv-AhB6Uccn_IiJbUSGa_C6tmK-vyPcdRbVXT/exec";
+    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyXFaE3jVYqVYSDEvJPHoPr43AzbFSqS3-VjDI_HdwG1RjtZEae1vIVy-fOrbGJFTBC/exec";
     // =====================================================================
 
     let APP_STATE = {
@@ -697,12 +706,18 @@
       }
     }
 
-    // Cek sesi login otomatis saat refresh di GitHub Pages
+    // Cek sesi login otomatis & daftarkan PWA saat refresh
     window.onload = function() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW skip:', err));
+      }
+
       const savedAuth = localStorage.getItem('munaqosyah_gh_auth');
       if (savedAuth) {
         try {
           const creds = JSON.parse(savedAuth);
+          document.getElementById('loginEmail').value = creds.email;
+          document.getElementById('loginPassword').value = creds.password;
           prosesLogin(creds.email, creds.password, true);
         } catch (e) {
           localStorage.removeItem('munaqosyah_gh_auth');
@@ -718,7 +733,7 @@
     }
 
     async function prosesLogin(email, password, isAuto) {
-      showLoading('Memverifikasi akun...');
+      showLoading('Menghubungkan ke database...');
       try {
         const res = await callGasApi({
           action: 'login',
@@ -730,7 +745,7 @@
         if (!res || !res.status) {
           localStorage.removeItem('munaqosyah_gh_auth');
           if (!isAuto) {
-            Swal.fire('Gagal Masuk', (res && res.message) ? res.message : 'Respon server tidak valid.', 'error');
+            Swal.fire('Gagal Masuk', (res && res.message) ? res.message : 'Email atau Password salah.', 'error');
           }
           return;
         }
@@ -793,8 +808,8 @@
         hideLoading();
 
         if (res.status) {
-          localStorage.setItem('munaqosyah_gh_auth', JSON.stringify({ email: APP_STATE.user.email, password: newPass }));
           document.getElementById('loginPassword').value = newPass;
+          localStorage.setItem('munaqosyah_gh_auth', JSON.stringify({ email: APP_STATE.user.email, password: newPass }));
           tutupModalPassword();
           Swal.fire('Berhasil!', res.message, 'success');
         } else {
@@ -816,61 +831,74 @@
       document.getElementById('userEmailDisplay').innerText = u.email;
 
       const roleLower = u.role.trim().toLowerCase();
-      const adminNav = document.getElementById('adminTabNav');
+      document.getElementById('adminTabNav').classList.add('hidden');
 
       if (roleLower === 'admin') {
-        adminNav.classList.remove('hidden');
-        document.getElementById('penilaiSubDesc').innerText = 'Mode Admin: Menampilkan seluruh peserta munaqosyah terdaftar dari semua penguji.';
+        document.getElementById('adminTabNav').classList.remove('hidden');
         initPembimbingView();
         initPenilaiView();
-        initAdminViews();
+        initAdminMenus();
         switchAdminTab('pembimbing');
       } else if (roleLower === 'pembimbing') {
-        adminNav.classList.add('hidden');
+        hideAllViews();
         document.getElementById('pembimbingView').classList.remove('hidden');
-        document.getElementById('penilaiView').classList.add('hidden');
         initPembimbingView();
       } else if (roleLower === 'penilai' || roleLower === 'penguji') {
-        adminNav.classList.add('hidden');
+        hideAllViews();
         document.getElementById('penilaiView').classList.remove('hidden');
-        document.getElementById('pembimbingView').classList.add('hidden');
-        document.getElementById('penilaiSubDesc').innerText = 'Hanya menampilkan murid terdaftar yang ditugaskan kepada Anda. Jika nama murid sama lebih dari satu, perhatikan nama suratnya.';
         initPenilaiView();
       } else {
         Swal.fire('Akses Ditolak', 'Role "' + u.role + '" tidak dikenali sistem.', 'warning');
       }
     }
 
-    function switchAdminTab(tab) {
-      const tabs = {
-        pembimbing: { view: 'pembimbingView', btn: 'btnTabPembimbing' },
-        penilai: { view: 'penilaiView', btn: 'btnTabPenilai' },
-        inputMurid: { view: 'inputMuridView', btn: 'btnTabInputMurid' },
-        inputUser: { view: 'inputUserView', btn: 'btnTabInputUser' },
-        profile: { view: 'profileView', btn: 'btnTabProfile' },
-        laporan: { view: 'laporanView', btn: 'btnTabLaporan' }
-      };
-
-      Object.keys(tabs).forEach(key => {
-        const elView = document.getElementById(tabs[key].view);
-        const elBtn = document.getElementById(tabs[key].btn);
-        if (key === tab) {
-          elView.classList.remove('hidden');
-          elBtn.className = 'py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer emerald-grad text-white shadow-sm';
-        } else {
-          elView.classList.add('hidden');
-          elBtn.className = 'py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer text-slate-600 hover:bg-slate-100';
-        }
+    function hideAllViews() {
+      ['pembimbingView', 'penilaiView', 'inputMuridView', 'inputUserView', 'profileView', 'laporanView'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
       });
-
-      if (tab === 'laporan') renderTabelLaporan();
     }
 
-    // ================= INISIALISASI & LOGIKA MENU ADMIN =================
-    function initAdminViews() {
+    function switchAdminTab(tab) {
+      const tabs = {
+        pembimbing: 'btnTabPembimbing',
+        penilai: 'btnTabPenilai',
+        inputMurid: 'btnTabInputMurid',
+        inputUser: 'btnTabInputUser',
+        profile: 'btnTabProfile',
+        laporan: 'btnTabLaporan'
+      };
+      const activeCls = 'py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer emerald-grad text-white shadow-sm';
+      const inactiveCls = 'py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer text-slate-600 hover:bg-slate-100';
+
+      hideAllViews();
+      Object.keys(tabs).forEach(k => {
+        document.getElementById(tabs[k]).className = (k === tab) ? activeCls : inactiveCls;
+      });
+
+      if (tab === 'pembimbing') {
+        document.getElementById('pembimbingView').classList.remove('hidden');
+      } else if (tab === 'penilai') {
+        document.getElementById('penilaiView').classList.remove('hidden');
+      } else if (tab === 'inputMurid') {
+        document.getElementById('inputMuridView').classList.remove('hidden');
+        renderTabelMuridAdmin();
+      } else if (tab === 'inputUser') {
+        document.getElementById('inputUserView').classList.remove('hidden');
+        renderTabelUserAdmin();
+      } else if (tab === 'profile') {
+        document.getElementById('profileView').classList.remove('hidden');
+        isiFormProfile();
+      } else if (tab === 'laporan') {
+        document.getElementById('laporanView').classList.remove('hidden');
+        renderTabelLaporan();
+      }
+    }
+
+    // ================= MENU ADMIN: INPUT MURID, USER, PROFILE, LAPORAN =================
+    function initAdminMenus() {
       renderTabelMuridAdmin();
       renderTabelUserAdmin();
-      loadProfileToForm();
+      isiFormProfile();
       renderTabelLaporan();
     }
 
@@ -907,12 +935,12 @@
 
       showLoading('Menyimpan data murid...');
       try {
-        const res = await callGasApi({ action: 'tambahMurid', payload });
+        const res = await callGasApi({ action: 'tambahMurid', payload: payload });
         hideLoading();
         if (res.status) {
           Swal.fire('Berhasil!', res.message, 'success');
           document.getElementById('formInputMurid').reset();
-          APP_STATE.muridList = res.muridList;
+          APP_STATE.muridList = res.muridList || [];
           renderTabelMuridAdmin();
           initPembimbingView();
         } else {
@@ -928,12 +956,16 @@
       const tbody = document.getElementById('tabelDaftarUserAdmin');
       document.getElementById('countUser').innerText = APP_STATE.userList.length;
       tbody.innerHTML = '';
+      if (APP_STATE.userList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-slate-400">Belum ada data user.</td></tr>';
+        return;
+      }
       APP_STATE.userList.forEach(u => {
         tbody.innerHTML += `
           <tr>
             <td class="py-2 px-3">${u.email}</td>
             <td class="py-2 px-3 font-semibold">${u.nama}</td>
-            <td class="py-2 px-3">${u.wa}</td>
+            <td class="py-2 px-3">${u.wa || '-'}</td>
             <td class="py-2 px-3"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">${u.role}</span></td>
           </tr>
         `;
@@ -951,12 +983,12 @@
 
       showLoading('Menyimpan user baru...');
       try {
-        const res = await callGasApi({ action: 'tambahUser', payload });
+        const res = await callGasApi({ action: 'tambahUser', payload: payload });
         hideLoading();
         if (res.status) {
           Swal.fire('Berhasil!', res.message, 'success');
           document.getElementById('formInputUser').reset();
-          APP_STATE.userList = res.userList;
+          APP_STATE.userList = res.userList || [];
           renderTabelUserAdmin();
         } else {
           Swal.fire('Gagal', res.message, 'error');
@@ -967,14 +999,19 @@
       }
     }
 
-    function loadProfileToForm() {
-      const p = APP_STATE.profile;
+    function isiFormProfile() {
+      const p = APP_STATE.profile || {};
       document.getElementById('inProfileKepsek').value = p.kepalaSekolah || '';
       document.getElementById('inProfileTitiMangsa').value = p.titiMangsa || '';
+      const img = document.getElementById('previewLogoImg');
+      const ph = document.getElementById('previewLogoPlaceholder');
       if (p.logo) {
-        document.getElementById('previewLogoImg').src = p.logo;
-        document.getElementById('previewLogoImg').classList.remove('hidden');
-        document.getElementById('previewLogoPlaceholder').classList.add('hidden');
+        img.src = p.logo;
+        img.classList.remove('hidden');
+        ph.classList.add('hidden');
+      } else {
+        img.classList.add('hidden');
+        ph.classList.remove('hidden');
       }
     }
 
@@ -983,22 +1020,27 @@
       if (!file) return;
       const reader = new FileReader();
       reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
+        const imgTemp = new Image();
+        imgTemp.onload = function() {
           const canvas = document.createElement('canvas');
-          const maxW = 200;
-          const scale = maxW / img.width;
-          canvas.width = maxW;
-          canvas.height = img.height * scale;
+          const maxDim = 220;
+          let w = imgTemp.width;
+          let h = imgTemp.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+            else { w = Math.round(w * maxDim / h); h = maxDim; }
+          }
+          canvas.width = w;
+          canvas.height = h;
           const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          const compressed = canvas.toDataURL('image/png', 0.8);
-          APP_STATE.uploadedLogoBase64 = compressed;
-          document.getElementById('previewLogoImg').src = compressed;
+          ctx.drawImage(imgTemp, 0, 0, w, h);
+          const compressedBase64 = canvas.toDataURL('image/png', 0.85);
+          APP_STATE.uploadedLogoBase64 = compressedBase64;
+          document.getElementById('previewLogoImg').src = compressedBase64;
           document.getElementById('previewLogoImg').classList.remove('hidden');
           document.getElementById('previewLogoPlaceholder').classList.add('hidden');
         };
-        img.src = e.target.result;
+        imgTemp.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
@@ -1011,13 +1053,14 @@
         titiMangsa: document.getElementById('inProfileTitiMangsa').value
       };
 
-      showLoading('Menyimpan profile sekolah...');
+      showLoading('Menyimpan pengaturan profile...');
       try {
-        const res = await callGasApi({ action: 'simpanProfile', payload });
+        const res = await callGasApi({ action: 'simpanProfile', payload: payload });
         hideLoading();
         if (res.status) {
           APP_STATE.profile = res.profile;
-          Swal.fire('Berhasil!', res.message, 'success');
+          APP_STATE.uploadedLogoBase64 = undefined;
+          Swal.fire('Tersimpan!', res.message, 'success');
           renderTabelLaporan();
         } else {
           Swal.fire('Gagal', res.message, 'error');
@@ -1029,7 +1072,7 @@
     }
 
     function renderTabelLaporan() {
-      const p = APP_STATE.profile;
+      const p = APP_STATE.profile || {};
       const lapLogo = document.getElementById('lapLogoImg');
       if (p.logo) {
         lapLogo.src = p.logo;
@@ -1040,19 +1083,19 @@
       document.getElementById('lapTitiMangsa').innerText = p.titiMangsa || 'Tangerang, 17 November 2026';
       document.getElementById('lapNamaKepsek').innerText = p.kepalaSekolah || 'Kepala SDIT Dauroh';
 
-      const kw = (document.getElementById('filterLaporanKeyword')?.value || '').toLowerCase();
-      const st = document.getElementById('filterLaporanStatus')?.value || 'ALL';
+      const kw = (document.getElementById('filterLaporanKeyword').value || '').toLowerCase();
+      const st = document.getElementById('filterLaporanStatus').value;
       const tbody = document.getElementById('tabelBodyLaporan');
       tbody.innerHTML = '';
 
       const filtered = APP_STATE.munaqosyahList.filter(r => {
-        const matchKw = r.namaMurid.toLowerCase().includes(kw) || r.kelas.toLowerCase().includes(kw) || r.namaSurat.toLowerCase().includes(kw);
-        const matchSt = st === 'ALL' || (st === 'Proses' ? r.nilaiAkhir === '' : r.keterangan === st);
+        const matchKw = r.namaMurid.toLowerCase().includes(kw) || r.kelas.toLowerCase().includes(kw) || r.namaSurat.toLowerCase().includes(kw) || r.nis.toLowerCase().includes(kw);
+        const matchSt = (st === 'ALL') || (st === 'Proses' && r.nilaiAkhir === '') || (r.keterangan === st);
         return matchKw && matchSt;
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" class="border border-slate-300 py-4 text-center text-slate-400">Tidak ada data laporan yang sesuai.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="border border-slate-300 py-4 text-center text-slate-400">Tidak ada data laporan sesuai filter.</td></tr>';
         return;
       }
 
@@ -1063,7 +1106,7 @@
             <td class="border border-slate-300 py-1.5 px-2">${r.nis}</td>
             <td class="border border-slate-300 py-1.5 px-2 font-semibold">${r.namaMurid}</td>
             <td class="border border-slate-300 py-1.5 px-2">${r.kelas}</td>
-            <td class="border border-slate-300 py-1.5 px-2">${r.namaSurat} (Juz ${r.juz})</td>
+            <td class="border border-slate-300 py-1.5 px-2">${r.namaSurat} (${r.juz})</td>
             <td class="border border-slate-300 py-1.5 px-2">${r.pembimbing}</td>
             <td class="border border-slate-300 py-1.5 px-2">${r.penguji}</td>
             <td class="border border-slate-300 py-1.5 px-2 text-center font-bold">${r.nilaiAkhir !== '' ? r.nilaiAkhir : '-'}</td>
@@ -1077,11 +1120,11 @@
     function simpanPdfLaporan() {
       const element = document.getElementById('areaCetakLaporan');
       const opt = {
-        margin: 10,
+        margin: 0.4,
         filename: 'Laporan_Munaqosyah_SDIT_Dauroh.pdf',
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
       };
       showLoading('Membuat file PDF...');
       html2pdf().set(opt).from(element).save().then(() => {
@@ -1196,11 +1239,10 @@
     function renderRiwayatPembimbing() {
       const tbody = document.getElementById('tabelRiwayatPembimbing');
       tbody.innerHTML = '';
-      const isAdmin = APP_STATE.user.role.trim().toLowerCase() === 'admin';
+      const roleLower = APP_STATE.user.role.trim().toLowerCase();
       const myName = APP_STATE.user.nama.toLowerCase();
-      
-      const filtered = isAdmin 
-        ? APP_STATE.munaqosyahList 
+      const filtered = roleLower === 'admin'
+        ? APP_STATE.munaqosyahList
         : APP_STATE.munaqosyahList.filter(r => r.pembimbing.toLowerCase() === myName);
 
       if (filtered.length === 0) {
@@ -1225,8 +1267,15 @@
       });
     }
 
-    // ================= LOGIKA UI PENILAI =================
+    <!-- ================= LOGIKA UI PENGUJI ================= -->
     function initPenilaiView() {
+      const roleLower = APP_STATE.user.role.trim().toLowerCase();
+      const descEl = document.getElementById('penilaiSubDesc');
+      if (descEl) {
+        descEl.innerText = roleLower === 'admin'
+          ? 'Mode Admin: Menampilkan seluruh peserta terdaftar dari semua penguji.'
+          : 'Hanya menampilkan murid terdaftar yang ditugaskan kepada Anda. Jika nama murid sama lebih dari satu, perhatikan nama suratnya.';
+      }
       filterPesertaTerdaftar();
     }
 
@@ -1235,11 +1284,11 @@
       const select = document.getElementById('selectPesertaUjian');
       select.innerHTML = '<option value="">-- Pilih Peserta Terdaftar --</option>';
 
-      const isAdmin = APP_STATE.user.role.trim().toLowerCase() === 'admin';
+      const roleLower = APP_STATE.user.role.trim().toLowerCase();
       const namaPengujiLogin = APP_STATE.user.nama.trim().toLowerCase();
 
       const list = APP_STATE.munaqosyahList.filter(r => {
-        const isMyStudent = isAdmin || (r.penguji.trim().toLowerCase() === namaPengujiLogin);
+        const isMyStudent = roleLower === 'admin' ? true : (r.penguji.trim().toLowerCase() === namaPengujiLogin);
         const matchKeyword = r.namaMurid.toLowerCase().includes(keyword) || r.nis.toLowerCase().includes(keyword);
         return isMyStudent && matchKeyword;
       });
@@ -1248,7 +1297,7 @@
         const opt = document.createElement('option');
         opt.value = "";
         opt.disabled = true;
-        opt.textContent = isAdmin ? "Belum ada peserta terdaftar" : "Tidak ada peserta yang ditugaskan kepada Anda";
+        opt.textContent = "Tidak ada peserta yang ditugaskan kepada Anda";
         select.appendChild(opt);
         return;
       }
@@ -1367,7 +1416,6 @@
           Swal.fire('Tersimpan!', res.message, 'success');
           APP_STATE.munaqosyahList = res.munaqosyahList;
           filterPesertaTerdaftar();
-          renderRiwayatPembimbing();
           document.getElementById('formPenilaianContainer').classList.add('hidden');
         } else {
           Swal.fire('Gagal', res.message, 'error');
