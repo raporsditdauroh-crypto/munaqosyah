@@ -222,17 +222,26 @@
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
           <div class="flex flex-wrap items-center justify-between gap-4 mb-4 border-b pb-4">
             <div>
-              <h2 class="text-lg font-extrabold text-slate-900">Daftar Hadir Harian Murid</h2>
+              <div class="flex flex-wrap items-center gap-2">
+                <h2 class="text-lg font-extrabold text-slate-900">Daftar Hadir Harian Murid</h2>
+                <span id="badgeStatusAbsensi" class="hidden px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                  ✔ Sudah Tersimpan (Mode Lihat)
+                </span>
+              </div>
               <p class="text-xs font-semibold text-emerald-700 mt-0.5" id="absensiTanggalIndoLabel">-</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-              <input type="date" id="absensiTanggal" onchange="renderTabelInputAbsensi()"
+              <input type="date" id="absensiTanggal" onchange="onGantiTanggalAbsensi()"
                 class="px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold" />
               <input type="text" id="absensiCariMurid" oninput="renderTabelInputAbsensi()" placeholder="Cari nama / kelas..."
                 class="px-3 py-2 rounded-xl border border-slate-300 text-xs" />
-              <button type="button" onclick="tandaiSemuaHadir()"
+              <button type="button" id="btnTandaiSemuaHadir" onclick="tandaiSemuaHadir()"
                 class="px-3 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-xl text-xs font-bold">
                 ✔ Tandai Semua Hadir
+              </button>
+              <button type="button" id="btnModeEditAbsensi" onclick="aktifkanModeEditAbsensi()"
+                class="hidden px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm">
+                ✏️ Edit Kehadiran
               </button>
             </div>
           </div>
@@ -253,11 +262,20 @@
             </table>
           </div>
 
-          <div class="flex justify-end mt-4 pt-3 border-t">
-            <button type="button" id="btnSimpanAbsensi" onclick="handleSimpanAbsensi()"
-              class="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow text-sm">
-              Simpan Daftar Hadir
-            </button>
+          <div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t">
+            <p class="text-xs text-slate-500" id="infoModeAbsensi">
+              Pilih status kehadiran (Hadir, Izin, Sakit, Alpa) dan keterangan lalu klik simpan.
+            </p>
+            <div class="flex items-center gap-2">
+              <button type="button" id="btnBatalEditAbsensi" onclick="batalModeEditAbsensi()"
+                class="hidden px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl text-xs">
+                Batal Edit
+              </button>
+              <button type="button" id="btnSimpanAbsensi" onclick="handleSimpanAbsensi()"
+                class="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                Simpan Daftar Hadir
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -605,7 +623,7 @@
 
   <script>
     // ================= KONFIGURASI BACKEND =================
-    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbylEPjA3W3HY5o9lGf8Z9Rt5lI10R1_YQmIwvTLsT5cX3omFPKPK5h9d5WZ8SLvJ-cV/exec";
+    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz4LlLu5iUNCbw9hCh37IF1nPrLiKaIM6GQhJF8Oc5Krb0Q5PiqJbTA5JL01U2ygddd/exec";
 
     let APP_STATE = {
       user: null,
@@ -623,6 +641,7 @@
       }
     };
     let TEMP_LOGO_BASE64 = "";
+    let IS_EDITING_ABSENSI = false;
 
     // ================= HELPER FORMAT TANGGAL & HARI INDONESIA =================
     const HARI_ID = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -647,6 +666,15 @@
       if (!m) return ymStr;
       const idx = Number(m[2]) - 1;
       return `${BULAN_ID[idx] || m[2]} ${m[1]}`;
+    }
+
+    function escapeHtmlAttr(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
     }
 
     // ================= HELPER API =================
@@ -813,7 +841,10 @@
         btnEl.classList.add("tab-active");
       }
 
-      if (panelId === "panelAbsensi") renderTabelInputAbsensi();
+      if (panelId === "panelAbsensi") {
+        IS_EDITING_ABSENSI = false;
+        renderTabelInputAbsensi();
+      }
       if (panelId === "panelLaporanAbsensi") {
         isiDropdownKelasLapAbsen();
         renderLaporanAbsensi();
@@ -838,6 +869,12 @@
       renderTabelPenguji();
       renderAdminTables();
       isiDropdownKelasLapAbsen();
+      if (!document.getElementById("panelAbsensi").classList.contains("hidden")) {
+        renderTabelInputAbsensi();
+      }
+      if (!document.getElementById("panelLaporanAbsensi").classList.contains("hidden")) {
+        renderLaporanAbsensi();
+      }
       isiFormProfile();
     }
 
@@ -1085,7 +1122,30 @@
       }
     });
 
-    // ================= DAFTAR HADIR MURID =================
+    // ================= DAFTAR HADIR MURID (LOCK SETELAH SIMPAN & MODE EDIT) =================
+    function onGantiTanggalAbsensi() {
+      IS_EDITING_ABSENSI = false;
+      renderTabelInputAbsensi();
+    }
+
+    function aktifkanModeEditAbsensi() {
+      IS_EDITING_ABSENSI = true;
+      renderTabelInputAbsensi();
+    }
+
+    function batalModeEditAbsensi() {
+      IS_EDITING_ABSENSI = false;
+      renderTabelInputAbsensi();
+    }
+
+    function getBadgeClassStatusAbsen(st) {
+      if (st === "Hadir") return "bg-emerald-100 text-emerald-800 border-emerald-300";
+      if (st === "Izin") return "bg-sky-100 text-sky-800 border-sky-300";
+      if (st === "Sakit") return "bg-amber-100 text-amber-800 border-amber-300";
+      if (st === "Alpa") return "bg-rose-100 text-rose-800 border-rose-300";
+      return "bg-slate-100 text-slate-600 border-slate-300";
+    }
+
     function renderTabelInputAbsensi() {
       const tgl = document.getElementById("absensiTanggal").value;
       document.getElementById("absensiTanggalIndoLabel").innerText = formatTanggalIndo(tgl);
@@ -1099,7 +1159,51 @@
         }
       });
 
-      let list = getMuridSesuaiRole();
+      const allMuridRole = getMuridSesuaiRole();
+      // Cek apakah pada tanggal ini sudah pernah ada data kehadiran tersimpan untuk murid-murid ini
+      const sudahTersimpanHariIni = allMuridRole.some(m => {
+        const key = m.nis || m.nama.toLowerCase();
+        const rec = absenMap.get(key);
+        return rec && rec.status;
+      });
+
+      const isLocked = sudahTersimpanHariIni && !IS_EDITING_ABSENSI;
+
+      // Atur tampilan tombol & status header
+      const badgeStatus = document.getElementById("badgeStatusAbsensi");
+      const btnTandaiSemua = document.getElementById("btnTandaiSemuaHadir");
+      const btnModeEdit = document.getElementById("btnModeEditAbsensi");
+      const btnBatalEdit = document.getElementById("btnBatalEditAbsensi");
+      const btnSimpan = document.getElementById("btnSimpanAbsensi");
+      const infoMode = document.getElementById("infoModeAbsensi");
+
+      if (isLocked) {
+        badgeStatus.classList.remove("hidden");
+        btnTandaiSemua.classList.add("hidden");
+        btnModeEdit.classList.remove("hidden");
+        btnBatalEdit.classList.add("hidden");
+        btnSimpan.disabled = true;
+        btnSimpan.innerText = "Kehadiran Hari Ini Sudah Disimpan";
+        infoMode.innerText = "Data kehadiran tanggal ini sudah tersimpan. Klik tombol 'Edit Kehadiran' di kanan atas jika ingin mengubah data.";
+      } else if (sudahTersimpanHariIni && IS_EDITING_ABSENSI) {
+        badgeStatus.classList.add("hidden");
+        btnTandaiSemua.classList.remove("hidden");
+        btnModeEdit.classList.add("hidden");
+        btnBatalEdit.classList.remove("hidden");
+        btnSimpan.disabled = false;
+        btnSimpan.innerText = "Simpan Perubahan Kehadiran";
+        infoMode.innerText = "Mode Edit aktif: ubah status atau keterangan murid lalu klik 'Simpan Perubahan Kehadiran'.";
+      } else {
+        badgeStatus.classList.add("hidden");
+        btnTandaiSemua.classList.remove("hidden");
+        btnModeEdit.classList.add("hidden");
+        btnBatalEdit.classList.add("hidden");
+        btnSimpan.disabled = false;
+        btnSimpan.innerText = "Simpan Daftar Hadir";
+        infoMode.innerText = "Pilih status kehadiran (Hadir, Izin, Sakit, Alpa) dan keterangan lalu klik simpan.";
+      }
+
+      let list = allMuridRole;
       if (keyword) {
         list = list.filter(m => m.nama.toLowerCase().includes(keyword) || m.kelas.toLowerCase().includes(keyword));
       }
@@ -1109,23 +1213,31 @@
         const ex = absenMap.get(key);
         const st = ex ? ex.status : "";
         const ket = ex ? ex.keterangan : "";
+        const badgeCls = getBadgeClassStatusAbsen(st);
+
         return `
-          <tr class="hover:bg-slate-50 absen-row" data-nis="${m.nis}" data-nama="${m.nama}" data-kelas="${m.kelas}" data-pembimbing="${m.pembimbing}">
+          <tr class="hover:bg-slate-50 absen-row" data-nis="${escapeHtmlAttr(m.nis)}" data-nama="${escapeHtmlAttr(m.nama)}" data-kelas="${escapeHtmlAttr(m.kelas)}" data-pembimbing="${escapeHtmlAttr(m.pembimbing)}">
             <td class="p-3">${idx + 1}</td>
             <td class="p-3 font-mono">${m.nis}</td>
             <td class="p-3 font-bold text-slate-900">${m.nama}</td>
             <td class="p-3">${m.kelas}</td>
             <td class="p-3">
-              <select class="absen-status px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold bg-white">
-                <option value="" ${st === "" ? "selected" : ""}>-- Pilih Status --</option>
-                <option value="Hadir" ${st === "Hadir" ? "selected" : ""}>Hadir</option>
-                <option value="Izin" ${st === "Izin" ? "selected" : ""}>Izin</option>
-                <option value="Sakit" ${st === "Sakit" ? "selected" : ""}>Sakit</option>
-                <option value="Alpa" ${st === "Alpa" ? "selected" : ""}>Alpa</option>
-              </select>
+              ${isLocked
+                ? `<span class="inline-block px-3 py-1 rounded-lg border text-xs font-bold ${badgeCls}">${st || '-'}</span>`
+                : `<select class="absen-status px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold bg-white">
+                    <option value="" ${st === "" ? "selected" : ""}>-- Pilih Status --</option>
+                    <option value="Hadir" ${st === "Hadir" ? "selected" : ""}>Hadir</option>
+                    <option value="Izin" ${st === "Izin" ? "selected" : ""}>Izin</option>
+                    <option value="Sakit" ${st === "Sakit" ? "selected" : ""}>Sakit</option>
+                    <option value="Alpa" ${st === "Alpa" ? "selected" : ""}>Alpa</option>
+                  </select>`
+              }
             </td>
             <td class="p-3">
-              <input type="text" value="${ket}" placeholder="Catatan opsional..." class="absen-ket w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs" />
+              ${isLocked
+                ? `<span class="text-xs text-slate-700">${ket ? escapeHtmlAttr(ket) : '-'}</span>`
+                : `<input type="text" value="${escapeHtmlAttr(ket)}" placeholder="Catatan opsional..." class="absen-ket w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs" />`
+              }
             </td>
           </tr>
         `;
@@ -1141,7 +1253,9 @@
       const tanggal = document.getElementById("absensiTanggal").value;
       const records = [];
       document.querySelectorAll(".absen-row").forEach(row => {
-        const status = row.querySelector(".absen-status").value;
+        const selEl = row.querySelector(".absen-status");
+        if (!selEl) return;
+        const status = selEl.value;
         if (status) {
           records.push({
             nis: row.dataset.nis,
@@ -1167,7 +1281,7 @@
         if (!resp.success) {
           Swal.fire("Gagal", resp.message || "Gagal menyimpan daftar hadir.", "error");
         } else {
-          // Segera perbarui state lokal agar status & keterangan tetap tampil seketika
+          // Perbarui state lokal seketika & kunci tampilan ke mode lihat hasil tersimpan
           records.forEach(rec => {
             const idRec = rec.nis || rec.namaMurid.toLowerCase();
             const existingIdx = APP_STATE.absensi.findIndex(a =>
@@ -1185,14 +1299,16 @@
             if (existingIdx > -1) APP_STATE.absensi[existingIdx] = itemBaru;
             else APP_STATE.absensi.push(itemBaru);
           });
+          IS_EDITING_ABSENSI = false;
           renderTabelInputAbsensi();
           renderLaporanAbsensi();
           await refreshAllData();
+          IS_EDITING_ABSENSI = false;
           renderTabelInputAbsensi();
         }
       } finally {
         btn.disabled = false;
-        btn.innerText = "Simpan Daftar Hadir";
+        renderTabelInputAbsensi();
       }
     }
 
