@@ -90,7 +90,7 @@
           <h2 class="text-lg font-extrabold text-slate-900 mb-4 border-b pb-2">Form Pendaftaran Peserta Munaqosyah</h2>
           <form id="formPendaftaran" class="space-y-5">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- SISI KIRI: Pencarian & Pilih Nama Murid (tanpa kelas), Kelas, Pembimbing, Penguji, Surat, Surat Sebelumnya -->
+              <!-- SISI KIRI: Pencarian & Pilih Nama Murid (hanya nama), Kelas, Pembimbing, Penguji, Surat, Surat Sebelumnya -->
               <div class="space-y-4">
                 <div>
                   <label class="block text-xs font-bold text-slate-600 mb-1">Pilih Nama Murid</label>
@@ -117,7 +117,7 @@
                     class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm" />
                 </div>
                 <div>
-                  <label class="block text-xs font-bold text-slate-600 mb-1">Surat yang Diujikan</label>
+                  <label class="block text-xs font-bold text-slate-600 mb-1">Surat</label>
                   <input type="text" id="daftarCariSurat" oninput="filterDropdownSurat()" placeholder="🔍 Cari nama surat..."
                     class="w-full px-3 py-2 mb-1.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-emerald-600 outline-none" />
                   <select id="daftarSurat" required
@@ -129,7 +129,7 @@
                   <label class="block text-xs font-bold text-slate-600 mb-1">Surat Sebelumnya</label>
                   <select id="daftarSuratSebelumnya"
                     class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white">
-                    <option value="">-- Pilih Surat Sebelumnya (Opsional) --</option>
+                    <option value="">-- Pilih Surat Sebelumnya --</option>
                   </select>
                 </div>
               </div>
@@ -627,6 +627,19 @@
       return await res.json();
     }
 
+    // ================= HELPER FILTER NAMA PEMBIMBING / PENGUJI =================
+    function cocokNamaUser(kolomNama, userObj) {
+      if (!kolomNama || !userObj) return false;
+      const a = String(kolomNama).trim().toLowerCase().replace(/\s+/g, " ");
+      const bNama = String(userObj.nama || "").trim().toLowerCase().replace(/\s+/g, " ");
+      const bUser = String(userObj.username || "").trim().toLowerCase().replace(/\s+/g, " ");
+      if (a === bNama || a === bUser) return true;
+      const bersih = (s) => s.split(",")[0].replace(/^(ust\.?|ustadz|ustadzah|ibu|bapak|pak|bu|kak)\s+/i, "").trim();
+      const ca = bersih(a);
+      const cb = bersih(bNama);
+      return Boolean(ca && cb && (ca === cb || ca.includes(cb) || cb.includes(ca)));
+    }
+
     // ================= INISIALISASI =================
     document.addEventListener("DOMContentLoaded", async () => {
       const todayIso = new Date().toISOString().split("T")[0];
@@ -792,6 +805,13 @@
     }
 
     // ================= PENDAFTARAN MUNAQOSYAH =================
+    function getMuridSesuaiRole() {
+      const role = String(APP_STATE.user.role || "").toLowerCase();
+      return (role === "admin")
+        ? APP_STATE.murid
+        : APP_STATE.murid.filter(m => cocokNamaUser(m.pembimbing, APP_STATE.user));
+    }
+
     function isiDropdownPendaftaran() {
       filterDropdownMurid();
       filterDropdownSurat();
@@ -799,22 +819,22 @@
     }
 
     function filterDropdownMurid() {
-      const role = String(APP_STATE.user.role || "").toLowerCase();
-      const namaUser = String(APP_STATE.user.nama || "").trim().toLowerCase();
       const keyword = (document.getElementById("daftarCariMurid").value || "").trim().toLowerCase();
       const currentVal = document.getElementById("daftarSelectMurid").value;
 
-      let muridFiltered = (role === "admin")
-        ? APP_STATE.murid
-        : APP_STATE.murid.filter(m => m.pembimbing.toLowerCase() === namaUser);
-
-      if (keyword) {
-        muridFiltered = muridFiltered.filter(m => m.nama.toLowerCase().includes(keyword));
-      }
+      // Gunakan indeks asli APP_STATE.murid agar selalu unik meski NIS kosong
+      const indexedList = APP_STATE.murid
+        .map((m, idx) => ({ m, idx }))
+        .filter(item => {
+          const role = String(APP_STATE.user.role || "").toLowerCase();
+          if (role !== "admin" && !cocokNamaUser(item.m.pembimbing, APP_STATE.user)) return false;
+          if (keyword && !item.m.nama.toLowerCase().includes(keyword)) return false;
+          return true;
+        });
 
       const selMurid = document.getElementById("daftarSelectMurid");
-      selMurid.innerHTML = `<option value="">-- Pilih Nama Murid (${muridFiltered.length}) --</option>` +
-        muridFiltered.map(m => `<option value="${m.nis}" ${m.nis === currentVal ? "selected" : ""}>${m.nama}</option>`).join("");
+      selMurid.innerHTML = `<option value="">-- Pilih Nama Murid (${indexedList.length}) --</option>` +
+        indexedList.map(item => `<option value="${item.idx}" ${String(item.idx) === currentVal ? "selected" : ""}>${item.m.nama}</option>`).join("");
     }
 
     function filterDropdownSurat() {
@@ -826,33 +846,28 @@
 
       const selSurat = document.getElementById("daftarSurat");
       selSurat.innerHTML = `<option value="">-- Pilih Surat (${list.length}) --</option>` +
-        list.map(s => {
-          const label = s.namaSurat + (s.progres ? ` (${s.progres})` : "");
-          return `<option value="${label}" ${label === currentVal ? "selected" : ""}>${label}</option>`;
-        }).join("");
+        list.map(s => `<option value="${s.namaSurat}" ${s.namaSurat === currentVal ? "selected" : ""}>${s.namaSurat}</option>`).join("");
     }
 
     function isiDropdownSuratSebelumnya() {
       const selPrev = document.getElementById("daftarSuratSebelumnya");
       const currentVal = selPrev.value;
-      selPrev.innerHTML = `<option value="">-- Pilih Surat Sebelumnya (Opsional) --</option>` +
-        APP_STATE.surat.map(s => {
-          const label = s.namaSurat + (s.progres ? ` (${s.progres})` : "");
-          return `<option value="${label}" ${label === currentVal ? "selected" : ""}>${label}</option>`;
-        }).join("");
+      selPrev.innerHTML = `<option value="">-- Pilih Surat Sebelumnya --</option>` +
+        APP_STATE.surat.map(s => `<option value="${s.namaSurat}" ${s.namaSurat === currentVal ? "selected" : ""}>${s.namaSurat}</option>`).join("");
     }
 
     function onPilihMuridDaftar() {
-      const nis = document.getElementById("daftarSelectMurid").value;
-      const m = APP_STATE.murid.find(x => x.nis === nis);
+      const idxStr = document.getElementById("daftarSelectMurid").value;
+      const m = (idxStr !== "") ? APP_STATE.murid[Number(idxStr)] : null;
       document.getElementById("daftarKelas").value = m ? m.kelas : "";
       document.getElementById("daftarPembimbing").value = m ? m.pembimbing : "";
       document.getElementById("daftarPenguji").value = m ? m.penguji : "";
 
-      // Otomatis isi Surat Sebelumnya dari riwayat munaqosyah terakhir murid tersebut
       const selPrev = document.getElementById("daftarSuratSebelumnya");
       if (m) {
-        const riwayatMurid = APP_STATE.munaqosyah.filter(r => r.nis === m.nis && r.surat);
+        const riwayatMurid = APP_STATE.munaqosyah.filter(r =>
+          ((m.nis && r.nis === m.nis) || r.namaMurid.toLowerCase() === m.nama.toLowerCase()) && r.surat
+        );
         if (riwayatMurid.length > 0) {
           const terakhir = riwayatMurid[riwayatMurid.length - 1].surat;
           const adaOption = Array.from(selPrev.options).some(opt => opt.value === terakhir);
@@ -873,8 +888,8 @@
 
     document.getElementById("formPendaftaran").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const nis = document.getElementById("daftarSelectMurid").value;
-      const m = APP_STATE.murid.find(x => x.nis === nis);
+      const idxStr = document.getElementById("daftarSelectMurid").value;
+      const m = (idxStr !== "") ? APP_STATE.murid[Number(idxStr)] : null;
       if (!m) return;
 
       const btn = document.getElementById("btnSubmitDaftar");
@@ -884,7 +899,7 @@
       try {
         const suratDipilih = document.getElementById("daftarSurat").value;
         const suratPrev = document.getElementById("daftarSuratSebelumnya").value;
-        const matchedSuratObj = APP_STATE.surat.find(s => (s.namaSurat + (s.progres ? ` (${s.progres})` : "")) === suratDipilih);
+        const matchedSuratObj = APP_STATE.surat.find(s => s.namaSurat === suratDipilih);
 
         const payload = {
           nis: m.nis,
@@ -916,10 +931,9 @@
 
     function renderRiwayatPendaftaran() {
       const role = String(APP_STATE.user.role || "").toLowerCase();
-      const namaUser = String(APP_STATE.user.nama || "").trim().toLowerCase();
       const rows = (role === "admin")
         ? APP_STATE.munaqosyah
-        : APP_STATE.munaqosyah.filter(x => x.pembimbing.toLowerCase() === namaUser);
+        : APP_STATE.munaqosyah.filter(x => cocokNamaUser(x.pembimbing, APP_STATE.user));
 
       document.getElementById("tbodyRiwayatDaftar").innerHTML = rows.slice().reverse().map(r => `
         <tr class="hover:bg-slate-50">
@@ -938,12 +952,11 @@
     // ================= PENILAIAN PENGUJI =================
     function renderTabelPenguji() {
       const role = String(APP_STATE.user.role || "").toLowerCase();
-      const namaUser = String(APP_STATE.user.nama || "").trim().toLowerCase();
       const filterStatus = document.getElementById("filterStatusUjian").value;
 
       let rows = (role === "admin")
         ? APP_STATE.munaqosyah
-        : APP_STATE.munaqosyah.filter(x => x.penguji.toLowerCase() === namaUser);
+        : APP_STATE.munaqosyah.filter(x => cocokNamaUser(x.penguji, APP_STATE.user));
 
       if (filterStatus !== "ALL") {
         rows = rows.filter(x => x.status === filterStatus);
@@ -1030,20 +1043,12 @@
     });
 
     // ================= DAFTAR HADIR MURID =================
-    function getMuridSesuaiRole() {
-      const role = String(APP_STATE.user.role || "").toLowerCase();
-      const namaUser = String(APP_STATE.user.nama || "").trim().toLowerCase();
-      return (role === "admin")
-        ? APP_STATE.murid
-        : APP_STATE.murid.filter(m => m.pembimbing.toLowerCase() === namaUser);
-    }
-
     function renderTabelInputAbsensi() {
       const tgl = document.getElementById("absensiTanggal").value;
       const keyword = document.getElementById("absensiCariMurid").value.trim().toLowerCase();
       const absenMap = new Map();
       APP_STATE.absensi.forEach(a => {
-        if (a.tanggal === tgl) absenMap.set(a.nis, a);
+        if (a.tanggal === tgl) absenMap.set(a.nis || a.namaMurid, a);
       });
 
       let list = getMuridSesuaiRole();
@@ -1052,7 +1057,7 @@
       }
 
       const rowsHtml = list.map((m, idx) => {
-        const ex = absenMap.get(m.nis);
+        const ex = absenMap.get(m.nis || m.nama);
         const st = ex ? ex.status : "";
         const ket = ex ? ex.keterangan : "";
         return `
@@ -1156,9 +1161,9 @@
             <th class="p-2 border border-slate-400">Keterangan</th>
           </tr>`;
         const mapHarian = new Map();
-        APP_STATE.absensi.forEach(a => { if (a.tanggal === tgl) mapHarian.set(a.nis, a); });
+        APP_STATE.absensi.forEach(a => { if (a.tanggal === tgl) mapHarian.set(a.nis || a.namaMurid, a); });
         tbody.innerHTML = muridList.map((m, i) => {
-          const rec = mapHarian.get(m.nis);
+          const rec = mapHarian.get(m.nis || m.nama);
           return `
             <tr>
               <td class="p-2 border border-slate-400">${i + 1}</td>
@@ -1186,7 +1191,7 @@
         tbody.innerHTML = muridList.map((m, i) => {
           let h = 0, iz = 0, s = 0, a = 0;
           APP_STATE.absensi.forEach(rec => {
-            if (rec.nis === m.nis && rec.tanggal.startsWith(bln)) {
+            if (((m.nis && rec.nis === m.nis) || rec.namaMurid === m.nama) && rec.tanggal.startsWith(bln)) {
               if (rec.status === "Hadir") h++;
               else if (rec.status === "Izin") iz++;
               else if (rec.status === "Sakit") s++;
