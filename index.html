@@ -222,13 +222,16 @@
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
           <div class="flex flex-wrap items-center justify-between gap-4 mb-4 border-b pb-4">
             <div>
-              <div class="flex flex-wrap items-center gap-2">
+              <div class="flex flex-wrap items-center gap-2.5">
                 <h2 class="text-lg font-extrabold text-slate-900">Daftar Hadir Harian Murid</h2>
-                <span id="badgeStatusAbsensi" class="hidden px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
-                  ✔ Sudah Tersimpan (Mode Lihat)
+                <span id="badgeStatusAbsensi" class="hidden inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  <span>✔</span> Sudah Tersimpan
+                </span>
+                <span id="badgeEditAbsensi" class="hidden inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                  <span>✏️</span> Mode Edit Aktif
                 </span>
               </div>
-              <p class="text-xs font-semibold text-emerald-700 mt-0.5" id="absensiTanggalIndoLabel">-</p>
+              <p class="text-xs font-semibold text-emerald-700 mt-1" id="absensiTanggalIndoLabel">-</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <input type="date" id="absensiTanggal" onchange="onGantiTanggalAbsensi()"
@@ -240,7 +243,7 @@
                 ✔ Tandai Semua Hadir
               </button>
               <button type="button" id="btnModeEditAbsensi" onclick="aktifkanModeEditAbsensi()"
-                class="hidden px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm">
+                class="hidden px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm transition">
                 ✏️ Edit Kehadiran
               </button>
             </div>
@@ -272,7 +275,7 @@
                 Batal Edit
               </button>
               <button type="button" id="btnSimpanAbsensi" onclick="handleSimpanAbsensi()"
-                class="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                class="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow text-sm disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed">
                 Simpan Daftar Hadir
               </button>
             </div>
@@ -642,6 +645,7 @@
     };
     let TEMP_LOGO_BASE64 = "";
     let IS_EDITING_ABSENSI = false;
+    let LAST_ACTIVE_TODAY_ISO = "";
 
     // ================= HELPER FORMAT TANGGAL & HARI INDONESIA =================
     const HARI_ID = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -649,6 +653,11 @@
       "Januari", "Februari", "Maret", "April", "Mei", "Juni",
       "Juli", "Agustus", "September", "Oktober", "November", "Desember"
     ];
+
+    function getTodayLocalIso() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    }
 
     function formatTanggalIndo(isoStr) {
       if (!isoStr) return "-";
@@ -700,13 +709,37 @@
       return Boolean(ca && cb && (ca === cb || ca.includes(cb) || cb.includes(ca)));
     }
 
-    // ================= INISIALISASI =================
+    // ================= INISIALISASI & ROLLOVER HARIAN (23:59:59 -> HARI BARU) =================
+    function cekRolloverHariBaru() {
+      const currentToday = getTodayLocalIso();
+      if (LAST_ACTIVE_TODAY_ISO && currentToday !== LAST_ACTIVE_TODAY_ISO) {
+        LAST_ACTIVE_TODAY_ISO = currentToday;
+        IS_EDITING_ABSENSI = false;
+        const inpAbsen = document.getElementById("absensiTanggal");
+        const inpLap = document.getElementById("lapAbsenTanggal");
+        const inpBln = document.getElementById("lapAbsenBulan");
+        if (inpAbsen) inpAbsen.value = currentToday;
+        if (inpLap) inpLap.value = currentToday;
+        if (inpBln) inpBln.value = currentToday.substring(0, 7);
+        if (APP_STATE.user) {
+          renderTabelInputAbsensi();
+          renderLaporanAbsensi();
+        }
+      }
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
-      const now = new Date();
-      const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+      const todayIso = getTodayLocalIso();
+      LAST_ACTIVE_TODAY_ISO = todayIso;
       document.getElementById("absensiTanggal").value = todayIso;
       document.getElementById("lapAbsenTanggal").value = todayIso;
       document.getElementById("lapAbsenBulan").value = todayIso.substring(0, 7);
+
+      // Pantau pergantian hari otomatis setelah pukul 23:59:59
+      setInterval(cekRolloverHariBaru, 15000);
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) cekRolloverHariBaru();
+      });
 
       const savedSchool = localStorage.getItem("munaqosyah_school_name");
       if (savedSchool) {
@@ -828,6 +861,7 @@
     }
 
     function bukaPanel(panelId, btnEl) {
+      cekRolloverHariBaru();
       document.querySelectorAll("main > section").forEach(sec => sec.classList.add("hidden"));
       const target = document.getElementById(panelId);
       if (target) target.classList.remove("hidden");
@@ -869,12 +903,8 @@
       renderTabelPenguji();
       renderAdminTables();
       isiDropdownKelasLapAbsen();
-      if (!document.getElementById("panelAbsensi").classList.contains("hidden")) {
-        renderTabelInputAbsensi();
-      }
-      if (!document.getElementById("panelLaporanAbsensi").classList.contains("hidden")) {
-        renderLaporanAbsensi();
-      }
+      renderTabelInputAbsensi();
+      renderLaporanAbsensi();
       isiFormProfile();
     }
 
@@ -1122,7 +1152,7 @@
       }
     });
 
-    // ================= DAFTAR HADIR MURID (LOCK SETELAH SIMPAN & MODE EDIT) =================
+    // ================= DAFTAR HADIR MURID (LOCK READ-ONLY SETELAH SIMPAN & MODE EDIT) =================
     function onGantiTanggalAbsensi() {
       IS_EDITING_ABSENSI = false;
       renderTabelInputAbsensi();
@@ -1146,31 +1176,42 @@
       return "bg-slate-100 text-slate-600 border-slate-300";
     }
 
+    function isTanggalAbsensiSudahTersimpan(tglIso, muridList) {
+      if (!tglIso || !Array.isArray(APP_STATE.absensi) || APP_STATE.absensi.length === 0) return false;
+      const nisSet = new Set(muridList.map(m => String(m.nis || "").trim()).filter(Boolean));
+      const namaSet = new Set(muridList.map(m => String(m.nama || "").trim().toLowerCase()).filter(Boolean));
+      return APP_STATE.absensi.some(a => {
+        if (String(a.tanggal || "").trim() !== tglIso || !String(a.status || "").trim()) return false;
+        const aNis = String(a.nis || "").trim();
+        const aNama = String(a.namaMurid || "").trim().toLowerCase();
+        return (aNis && nisSet.has(aNis)) || (aNama && namaSet.has(aNama));
+      });
+    }
+
     function renderTabelInputAbsensi() {
       const tgl = document.getElementById("absensiTanggal").value;
-      document.getElementById("absensiTanggalIndoLabel").innerText = formatTanggalIndo(tgl);
+      const todayIso = getTodayLocalIso();
+      const labelHariIni = (tgl === todayIso) ? " (Hari Ini)" : "";
+      document.getElementById("absensiTanggalIndoLabel").innerText = `${formatTanggalIndo(tgl)}${labelHariIni}`;
 
       const keyword = document.getElementById("absensiCariMurid").value.trim().toLowerCase();
-      const absenMap = new Map();
+      const absenMapByNis = new Map();
+      const absenMapByNama = new Map();
+
       APP_STATE.absensi.forEach(a => {
-        if (a.tanggal === tgl) {
-          const k = a.nis || a.namaMurid.toLowerCase();
-          absenMap.set(k, a);
+        if (String(a.tanggal || "").trim() === tgl) {
+          if (a.nis) absenMapByNis.set(String(a.nis).trim(), a);
+          if (a.namaMurid) absenMapByNama.set(String(a.namaMurid).trim().toLowerCase(), a);
         }
       });
 
       const allMuridRole = getMuridSesuaiRole();
-      // Cek apakah pada tanggal ini sudah pernah ada data kehadiran tersimpan untuk murid-murid ini
-      const sudahTersimpanHariIni = allMuridRole.some(m => {
-        const key = m.nis || m.nama.toLowerCase();
-        const rec = absenMap.get(key);
-        return rec && rec.status;
-      });
+      const sudahTersimpan = isTanggalAbsensiSudahTersimpan(tgl, allMuridRole);
+      const isLocked = sudahTersimpan && !IS_EDITING_ABSENSI;
 
-      const isLocked = sudahTersimpanHariIni && !IS_EDITING_ABSENSI;
-
-      // Atur tampilan tombol & status header
+      // Atur status visual lencana, tombol Edit, dan tombol Simpan
       const badgeStatus = document.getElementById("badgeStatusAbsensi");
+      const badgeEdit = document.getElementById("badgeEditAbsensi");
       const btnTandaiSemua = document.getElementById("btnTandaiSemuaHadir");
       const btnModeEdit = document.getElementById("btnModeEditAbsensi");
       const btnBatalEdit = document.getElementById("btnBatalEditAbsensi");
@@ -1179,28 +1220,31 @@
 
       if (isLocked) {
         badgeStatus.classList.remove("hidden");
+        badgeEdit.classList.add("hidden");
         btnTandaiSemua.classList.add("hidden");
         btnModeEdit.classList.remove("hidden");
         btnBatalEdit.classList.add("hidden");
         btnSimpan.disabled = true;
-        btnSimpan.innerText = "Kehadiran Hari Ini Sudah Disimpan";
-        infoMode.innerText = "Data kehadiran tanggal ini sudah tersimpan. Klik tombol 'Edit Kehadiran' di kanan atas jika ingin mengubah data.";
-      } else if (sudahTersimpanHariIni && IS_EDITING_ABSENSI) {
+        btnSimpan.innerText = "Simpan Daftar Hadir";
+        infoMode.innerText = "Data kehadiran untuk tanggal ini sudah tersimpan dan terkunci (read-only). Klik 'Edit Kehadiran' untuk mengubah data.";
+      } else if (sudahTersimpan && IS_EDITING_ABSENSI) {
         badgeStatus.classList.add("hidden");
+        badgeEdit.classList.remove("hidden");
         btnTandaiSemua.classList.remove("hidden");
         btnModeEdit.classList.add("hidden");
         btnBatalEdit.classList.remove("hidden");
         btnSimpan.disabled = false;
         btnSimpan.innerText = "Simpan Perubahan Kehadiran";
-        infoMode.innerText = "Mode Edit aktif: ubah status atau keterangan murid lalu klik 'Simpan Perubahan Kehadiran'.";
+        infoMode.innerText = "Mode Edit aktif: silakan ubah status kehadiran atau keterangan lalu klik 'Simpan Perubahan Kehadiran'.";
       } else {
         badgeStatus.classList.add("hidden");
+        badgeEdit.classList.add("hidden");
         btnTandaiSemua.classList.remove("hidden");
         btnModeEdit.classList.add("hidden");
         btnBatalEdit.classList.add("hidden");
         btnSimpan.disabled = false;
         btnSimpan.innerText = "Simpan Daftar Hadir";
-        infoMode.innerText = "Pilih status kehadiran (Hadir, Izin, Sakit, Alpa) dan keterangan lalu klik simpan.";
+        infoMode.innerText = "Pilih status kehadiran (Hadir, Izin, Sakit, Alpa) dan keterangan lalu klik 'Simpan Daftar Hadir'.";
       }
 
       let list = allMuridRole;
@@ -1209,14 +1253,15 @@
       }
 
       const rowsHtml = list.map((m, idx) => {
-        const key = m.nis || m.nama.toLowerCase();
-        const ex = absenMap.get(key);
+        const mNis = String(m.nis || "").trim();
+        const mNamaLow = String(m.nama || "").trim().toLowerCase();
+        const ex = (mNis && absenMapByNis.get(mNis)) || absenMapByNama.get(mNamaLow);
         const st = ex ? ex.status : "";
         const ket = ex ? ex.keterangan : "";
         const badgeCls = getBadgeClassStatusAbsen(st);
 
         return `
-          <tr class="hover:bg-slate-50 absen-row" data-nis="${escapeHtmlAttr(m.nis)}" data-nama="${escapeHtmlAttr(m.nama)}" data-kelas="${escapeHtmlAttr(m.kelas)}" data-pembimbing="${escapeHtmlAttr(m.pembimbing)}">
+          <tr class="hover:bg-slate-50 absen-row ${isLocked ? 'bg-slate-50/60' : ''}" data-nis="${escapeHtmlAttr(m.nis)}" data-nama="${escapeHtmlAttr(m.nama)}" data-kelas="${escapeHtmlAttr(m.kelas)}" data-pembimbing="${escapeHtmlAttr(m.pembimbing)}">
             <td class="p-3">${idx + 1}</td>
             <td class="p-3 font-mono">${m.nis}</td>
             <td class="p-3 font-bold text-slate-900">${m.nama}</td>
@@ -1235,7 +1280,7 @@
             </td>
             <td class="p-3">
               ${isLocked
-                ? `<span class="text-xs text-slate-700">${ket ? escapeHtmlAttr(ket) : '-'}</span>`
+                ? `<input type="text" value="${escapeHtmlAttr(ket)}" readonly disabled class="w-full px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-100 text-slate-700 text-xs cursor-not-allowed" />`
                 : `<input type="text" value="${escapeHtmlAttr(ket)}" placeholder="Catatan opsional..." class="absen-ket w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs" />`
               }
             </td>
@@ -1251,6 +1296,15 @@
 
     async function handleSimpanAbsensi() {
       const tanggal = document.getElementById("absensiTanggal").value;
+      const allMuridRole = getMuridSesuaiRole();
+      const sudahTersimpan = isTanggalAbsensiSudahTersimpan(tanggal, allMuridRole);
+
+      // Proteksi keras: jika sudah tersimpan dan bukan sedang dalam Mode Edit, blokir simpan
+      if (sudahTersimpan && !IS_EDITING_ABSENSI) {
+        renderTabelInputAbsensi();
+        return;
+      }
+
       const records = [];
       document.querySelectorAll(".absen-row").forEach(row => {
         const selEl = row.querySelector(".absen-status");
@@ -1275,18 +1329,23 @@
 
       const btn = document.getElementById("btnSimpanAbsensi");
       btn.disabled = true;
-      btn.innerText = "Menyimpan...";
+      btn.innerText = IS_EDITING_ABSENSI ? "Menyimpan Perubahan..." : "Menyimpan...";
+
       try {
         const resp = await callGasApi("simpanAbsensi", { tanggal, records });
         if (!resp.success) {
           Swal.fire("Gagal", resp.message || "Gagal menyimpan daftar hadir.", "error");
         } else {
-          // Perbarui state lokal seketika & kunci tampilan ke mode lihat hasil tersimpan
+          // Sinkronkan state lokal seketika agar status & keterangan langsung terkunci dan tampil di laporan
           records.forEach(rec => {
-            const idRec = rec.nis || rec.namaMurid.toLowerCase();
-            const existingIdx = APP_STATE.absensi.findIndex(a =>
-              a.tanggal === tanggal && ((a.nis || a.namaMurid.toLowerCase()) === idRec)
-            );
+            const recNis = String(rec.nis || "").trim();
+            const recNamaLow = String(rec.namaMurid || "").trim().toLowerCase();
+            const existingIdx = APP_STATE.absensi.findIndex(a => {
+              if (String(a.tanggal || "").trim() !== tanggal) return false;
+              const aNis = String(a.nis || "").trim();
+              const aNamaLow = String(a.namaMurid || "").trim().toLowerCase();
+              return (recNis && aNis === recNis) || (recNamaLow && aNamaLow === recNamaLow);
+            });
             const itemBaru = {
               tanggal,
               nis: rec.nis,
@@ -1299,15 +1358,22 @@
             if (existingIdx > -1) APP_STATE.absensi[existingIdx] = itemBaru;
             else APP_STATE.absensi.push(itemBaru);
           });
+
+          // Sinkronkan tanggal & bulan filter di Laporan Kehadiran agar langsung ter-update
+          document.getElementById("lapAbsenTanggal").value = tanggal;
+          document.getElementById("lapAbsenBulan").value = tanggal.substring(0, 7);
+
           IS_EDITING_ABSENSI = false;
           renderTabelInputAbsensi();
           renderLaporanAbsensi();
           await refreshAllData();
           IS_EDITING_ABSENSI = false;
           renderTabelInputAbsensi();
+          renderLaporanAbsensi();
         }
+      } catch (err) {
+        Swal.fire("Koneksi Gagal", "Terjadi kesalahan saat menyimpan daftar hadir: " + err.message, "error");
       } finally {
-        btn.disabled = false;
         renderTabelInputAbsensi();
       }
     }
@@ -1333,7 +1399,7 @@
     function renderLaporanAbsensi() {
       const p = APP_STATE.profile || {};
       const namaSekolah = p.namaSekolah || "SDIT Dauroh";
-      document.getElementById("lapAbsenTitiMangsa").innerText = p.titiMangsa || `Tangerang, ${formatTanggalIndo(new Date().toISOString().split("T")[0]).replace(/^[^,]+,\s*/, "")}`;
+      document.getElementById("lapAbsenTitiMangsa").innerText = p.titiMangsa || `Tangerang, ${formatTanggalIndo(getTodayLocalIso()).replace(/^[^,]+,\s*/, "")}`;
       document.getElementById("lapAbsenKepsek").innerText = p.kepalaSekolah || "Kepala Sekolah";
       document.getElementById("lapAbsenPembimbingSign").innerText = APP_STATE.user ? APP_STATE.user.nama : "Pembimbing Tahfiz";
       document.querySelectorAll(".school-name-display").forEach(el => { el.innerText = namaSekolah; });
@@ -1362,15 +1428,18 @@
             <th class="p-2 border border-slate-400">Status</th>
             <th class="p-2 border border-slate-400">Keterangan</th>
           </tr>`;
-        const mapHarian = new Map();
+        const mapByNis = new Map();
+        const mapByNama = new Map();
         APP_STATE.absensi.forEach(a => {
-          if (a.tanggal === tgl) {
-            const k = a.nis || a.namaMurid.toLowerCase();
-            mapHarian.set(k, a);
+          if (String(a.tanggal || "").trim() === tgl) {
+            if (a.nis) mapByNis.set(String(a.nis).trim(), a);
+            if (a.namaMurid) mapByNama.set(String(a.namaMurid).trim().toLowerCase(), a);
           }
         });
         tbody.innerHTML = muridList.map((m, i) => {
-          const rec = mapHarian.get(m.nis || m.nama.toLowerCase());
+          const mNis = String(m.nis || "").trim();
+          const mNamaLow = String(m.nama || "").trim().toLowerCase();
+          const rec = (mNis && mapByNis.get(mNis)) || mapByNama.get(mNamaLow);
           return `
             <tr>
               <td class="p-2 border border-slate-400">${i + 1}</td>
@@ -1397,9 +1466,11 @@
           </tr>`;
         tbody.innerHTML = muridList.map((m, i) => {
           let h = 0, iz = 0, s = 0, a = 0;
+          const mNis = String(m.nis || "").trim();
+          const mNamaLow = String(m.nama || "").trim().toLowerCase();
           APP_STATE.absensi.forEach(rec => {
-            const samaMurid = (m.nis && rec.nis === m.nis) || (rec.namaMurid.toLowerCase() === m.nama.toLowerCase());
-            if (samaMurid && rec.tanggal.startsWith(bln)) {
+            const samaMurid = (mNis && String(rec.nis || "").trim() === mNis) || (String(rec.namaMurid || "").trim().toLowerCase() === mNamaLow);
+            if (samaMurid && String(rec.tanggal || "").startsWith(bln)) {
               if (rec.status === "Hadir") h++;
               else if (rec.status === "Izin") iz++;
               else if (rec.status === "Sakit") s++;
@@ -1566,7 +1637,7 @@
 
     function renderLaporanAdmin() {
       const p = APP_STATE.profile || {};
-      document.getElementById("lapMunaTitiMangsa").innerText = p.titiMangsa || `Tangerang, ${formatTanggalIndo(new Date().toISOString().split("T")[0]).replace(/^[^,]+,\s*/, "")}`;
+      document.getElementById("lapMunaTitiMangsa").innerText = p.titiMangsa || `Tangerang, ${formatTanggalIndo(getTodayLocalIso()).replace(/^[^,]+,\s*/, "")}`;
       document.getElementById("lapMunaKepsek").innerText = p.kepalaSekolah || "Kepala Sekolah";
       const kls = document.getElementById("filterLapKelas").value;
       const st = document.getElementById("filterLapStatus").value;
