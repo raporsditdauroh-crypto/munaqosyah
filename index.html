@@ -90,7 +90,7 @@
           <h2 class="text-lg font-extrabold text-slate-900 mb-4 border-b pb-2">Form Pendaftaran Peserta Munaqosyah</h2>
           <form id="formPendaftaran" class="space-y-5">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- SISI KIRI: Pencarian & Pilih Nama Murid (hanya nama), Kelas, Pembimbing, Penguji, Surat, Surat Sebelumnya -->
+              <!-- SISI KIRI -->
               <div class="space-y-4">
                 <div>
                   <label class="block text-xs font-bold text-slate-600 mb-1">Pilih Nama Murid</label>
@@ -134,7 +134,7 @@
                 </div>
               </div>
 
-              <!-- SISI KANAN: Nilai Akhlak, Catatan Akhlak, Catatan Murid -->
+              <!-- SISI KANAN -->
               <div class="space-y-4">
                 <div>
                   <label class="block text-xs font-bold text-slate-600 mb-1">Nilai Akhlak (0 - 100)</label>
@@ -201,7 +201,7 @@
             <table class="w-full text-xs text-left border-collapse">
               <thead class="bg-slate-100 text-slate-700 uppercase">
                 <tr>
-                  <th class="p-3 border-b">Jadwal</th>
+                  <th class="p-3 border-b">Jadwal Ujian</th>
                   <th class="p-3 border-b">Nama Murid</th>
                   <th class="p-3 border-b">Kelas</th>
                   <th class="p-3 border-b">Pembimbing</th>
@@ -223,7 +223,7 @@
           <div class="flex flex-wrap items-center justify-between gap-4 mb-4 border-b pb-4">
             <div>
               <h2 class="text-lg font-extrabold text-slate-900">Daftar Hadir Harian Murid</h2>
-              <p class="text-xs text-slate-500">Pilih tanggal dan status kehadiran (Hadir, Izin, Sakit, Alpa)</p>
+              <p class="text-xs font-semibold text-emerald-700 mt-0.5" id="absensiTanggalIndoLabel">-</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <input type="date" id="absensiTanggal" onchange="renderTabelInputAbsensi()"
@@ -282,6 +282,12 @@
                 <label class="block text-xs font-bold text-slate-600 mb-1">Bulan</label>
                 <input type="month" id="lapAbsenBulan" onchange="renderLaporanAbsensi()" class="px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold" />
               </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Filter Kelas</label>
+                <select id="lapAbsenKelas" onchange="renderLaporanAbsensi()" class="px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold">
+                  <option value="ALL">Semua Kelas</option>
+                </select>
+              </div>
             </div>
             <div class="flex gap-2">
               <button onclick="printLaporanAbsensi()" class="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-xs font-bold">🖨️ Print</button>
@@ -296,7 +302,8 @@
             <div>
               <h2 class="text-xl font-extrabold uppercase text-slate-900 school-name-display">SDIT Dauroh</h2>
               <h3 class="text-sm font-bold text-slate-700" id="lapAbsenJudul">LAPORAN KEHADIRAN TAHFIZ MURID</h3>
-              <p class="text-xs text-slate-500" id="lapAbsenPeriode">-</p>
+              <p class="text-xs text-slate-600 font-semibold" id="lapAbsenPeriode">-</p>
+              <p class="text-xs text-slate-500" id="lapAbsenSubKelas">Kelas: Semua Kelas</p>
             </div>
           </div>
 
@@ -313,7 +320,7 @@
               <p class="font-bold underline" id="lapAbsenKepsek">Kepala Sekolah</p>
             </div>
             <div>
-              <p class="mb-16"><span id="lapAbsenTitiMangsa">Tangerang, 17 November 2026</span><br/>Pembimbing Tahfiz</p>
+              <p class="mb-16"><span id="lapAbsenTitiMangsa">Tangerang, 18 November 2026</span><br/>Pembimbing Tahfiz</p>
               <p class="font-bold underline" id="lapAbsenPembimbingSign">Pembimbing Tahfiz</p>
             </div>
           </div>
@@ -411,7 +418,7 @@
 
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">Titi Mangsa Laporan</label>
-              <input type="text" id="inProfileTitiMangsa" placeholder="Contoh: Tangerang, 17 November 2026"
+              <input type="text" id="inProfileTitiMangsa" placeholder="Contoh: Tangerang, 18 November 2026"
                 class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" />
             </div>
 
@@ -507,7 +514,7 @@
 
           <div class="flex justify-end mt-10 text-xs text-center">
             <div class="w-64">
-              <p class="mb-16"><span id="lapMunaTitiMangsa">Tangerang, 17 November 2026</span><br/>Kepala <span class="school-name-display">SDIT Dauroh</span></p>
+              <p class="mb-16"><span id="lapMunaTitiMangsa">Tangerang, 18 November 2026</span><br/>Kepala <span class="school-name-display">SDIT Dauroh</span></p>
               <p class="font-bold underline" id="lapMunaKepsek">Kepala Sekolah</p>
             </div>
           </div>
@@ -598,7 +605,7 @@
 
   <script>
     // ================= KONFIGURASI BACKEND =================
-    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzBoJw5KiaTBKBPbh2iC6pLLjDaJUYFkPnyBpVswV0KxKbZJ3vOUtYDTkv72-o5ofGg/exec";
+    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz4LlLu5iUNCbw9hCh37IF1nPrLiKaIM6GQhJF8Oc5Krb0Q5PiqJbTA5JL01U2ygddd/exec";
 
     let APP_STATE = {
       user: null,
@@ -616,6 +623,31 @@
       }
     };
     let TEMP_LOGO_BASE64 = "";
+
+    // ================= HELPER FORMAT TANGGAL & HARI INDONESIA =================
+    const HARI_ID = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+    const BULAN_ID = [
+      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+
+    function formatTanggalIndo(isoStr) {
+      if (!isoStr) return "-";
+      const s = String(isoStr).trim();
+      const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (!m) return s;
+      const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0);
+      if (isNaN(d.getTime())) return s;
+      return `${HARI_ID[d.getDay()]}, ${d.getDate()} ${BULAN_ID[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    function formatBulanIndo(ymStr) {
+      if (!ymStr) return "-";
+      const m = String(ymStr).trim().match(/^(\d{4})-(\d{2})/);
+      if (!m) return ymStr;
+      const idx = Number(m[2]) - 1;
+      return `${BULAN_ID[idx] || m[2]} ${m[1]}`;
+    }
 
     // ================= HELPER API =================
     async function callGasApi(action, payload = {}) {
@@ -642,7 +674,8 @@
 
     // ================= INISIALISASI =================
     document.addEventListener("DOMContentLoaded", async () => {
-      const todayIso = new Date().toISOString().split("T")[0];
+      const now = new Date();
+      const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
       document.getElementById("absensiTanggal").value = todayIso;
       document.getElementById("lapAbsenTanggal").value = todayIso;
       document.getElementById("lapAbsenBulan").value = todayIso.substring(0, 7);
@@ -781,7 +814,10 @@
       }
 
       if (panelId === "panelAbsensi") renderTabelInputAbsensi();
-      if (panelId === "panelLaporanAbsensi") renderLaporanAbsensi();
+      if (panelId === "panelLaporanAbsensi") {
+        isiDropdownKelasLapAbsen();
+        renderLaporanAbsensi();
+      }
       if (panelId === "panelAdminLaporan") renderLaporanAdmin();
       if (panelId === "panelAdminProfile") isiFormProfile();
     }
@@ -801,6 +837,7 @@
       renderRiwayatPendaftaran();
       renderTabelPenguji();
       renderAdminTables();
+      isiDropdownKelasLapAbsen();
       isiFormProfile();
     }
 
@@ -822,7 +859,6 @@
       const keyword = (document.getElementById("daftarCariMurid").value || "").trim().toLowerCase();
       const currentVal = document.getElementById("daftarSelectMurid").value;
 
-      // Gunakan indeks asli APP_STATE.murid agar selalu unik meski NIS kosong
       const indexedList = APP_STATE.murid
         .map((m, idx) => ({ m, idx }))
         .filter(item => {
@@ -935,18 +971,22 @@
         ? APP_STATE.munaqosyah
         : APP_STATE.munaqosyah.filter(x => cocokNamaUser(x.pembimbing, APP_STATE.user));
 
-      document.getElementById("tbodyRiwayatDaftar").innerHTML = rows.slice().reverse().map(r => `
-        <tr class="hover:bg-slate-50">
-          <td class="p-3 font-semibold">${r.jadwalUjian || r.tanggalUjian || '-'}</td>
-          <td class="p-3 font-bold text-slate-900">${r.namaMurid}</td>
-          <td class="p-3">${r.kelas}</td>
-          <td class="p-3">${r.surat}</td>
-          <td class="p-3">${r.penguji}</td>
-          <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.status === 'Selesai Dinilai' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.status}</span></td>
-          <td class="p-3 font-extrabold">${r.nilaiAkhir !== "" ? r.nilaiAkhir : '-'}</td>
-          <td class="p-3 font-bold">${r.predikat || '-'}</td>
-        </tr>
-      `).join("");
+      document.getElementById("tbodyRiwayatDaftar").innerHTML = rows.slice().reverse().map(r => {
+        const tglRaw = r.jadwalUjian || r.tanggalUjian || "";
+        const jadwalTampil = r.jadwalUjianIndo || formatTanggalIndo(tglRaw);
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 font-semibold text-emerald-900">${jadwalTampil}</td>
+            <td class="p-3 font-bold text-slate-900">${r.namaMurid}</td>
+            <td class="p-3">${r.kelas}</td>
+            <td class="p-3">${r.surat}</td>
+            <td class="p-3">${r.penguji}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.status === 'Selesai Dinilai' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.status}</span></td>
+            <td class="p-3 font-extrabold">${r.nilaiAkhir !== "" ? r.nilaiAkhir : '-'}</td>
+            <td class="p-3 font-bold">${r.predikat || '-'}</td>
+          </tr>
+        `;
+      }).join("");
     }
 
     // ================= PENILAIAN PENGUJI =================
@@ -962,23 +1002,26 @@
         rows = rows.filter(x => x.status === filterStatus);
       }
 
-      document.getElementById("tbodyPenguji").innerHTML = rows.map(r => `
-        <tr class="hover:bg-slate-50">
-          <td class="p-3 font-semibold">${r.jadwalUjian || '-'}</td>
-          <td class="p-3 font-bold">${r.namaMurid}</td>
-          <td class="p-3">${r.kelas}</td>
-          <td class="p-3">${r.pembimbing}</td>
-          <td class="p-3">${r.surat}</td>
-          <td class="p-3 font-bold">${r.nilaiAkhlak || '-'}</td>
-          <td class="p-3">${r.status}</td>
-          <td class="p-3 text-center">
-            <button onclick='bukaModalNilai(${JSON.stringify(r).replace(/'/g, "&apos;")})'
-              class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold">
-              ${r.status === 'Selesai Dinilai' ? 'Edit Nilai' : 'Nilai'}
-            </button>
-          </td>
-        </tr>
-      `).join("");
+      document.getElementById("tbodyPenguji").innerHTML = rows.map(r => {
+        const jadwalTampil = r.jadwalUjianIndo || formatTanggalIndo(r.jadwalUjian || r.tanggalUjian);
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 font-semibold text-emerald-900">${jadwalTampil}</td>
+            <td class="p-3 font-bold">${r.namaMurid}</td>
+            <td class="p-3">${r.kelas}</td>
+            <td class="p-3">${r.pembimbing}</td>
+            <td class="p-3">${r.surat}</td>
+            <td class="p-3 font-bold">${r.nilaiAkhlak || '-'}</td>
+            <td class="p-3">${r.status}</td>
+            <td class="p-3 text-center">
+              <button onclick='bukaModalNilai(${JSON.stringify(r).replace(/'/g, "&apos;")})'
+                class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold">
+                ${r.status === 'Selesai Dinilai' ? 'Edit Nilai' : 'Nilai'}
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join("");
     }
 
     function bukaModalNilai(r) {
@@ -1045,10 +1088,15 @@
     // ================= DAFTAR HADIR MURID =================
     function renderTabelInputAbsensi() {
       const tgl = document.getElementById("absensiTanggal").value;
+      document.getElementById("absensiTanggalIndoLabel").innerText = formatTanggalIndo(tgl);
+
       const keyword = document.getElementById("absensiCariMurid").value.trim().toLowerCase();
       const absenMap = new Map();
       APP_STATE.absensi.forEach(a => {
-        if (a.tanggal === tgl) absenMap.set(a.nis || a.namaMurid, a);
+        if (a.tanggal === tgl) {
+          const k = a.nis || a.namaMurid.toLowerCase();
+          absenMap.set(k, a);
+        }
       });
 
       let list = getMuridSesuaiRole();
@@ -1057,7 +1105,8 @@
       }
 
       const rowsHtml = list.map((m, idx) => {
-        const ex = absenMap.get(m.nis || m.nama);
+        const key = m.nis || m.nama.toLowerCase();
+        const ex = absenMap.get(key);
         const st = ex ? ex.status : "";
         const ket = ex ? ex.keterangan : "";
         return `
@@ -1118,6 +1167,26 @@
         if (!resp.success) {
           Swal.fire("Gagal", resp.message || "Gagal menyimpan daftar hadir.", "error");
         } else {
+          // Segera perbarui state lokal agar status & keterangan tetap tampil seketika
+          records.forEach(rec => {
+            const idRec = rec.nis || rec.namaMurid.toLowerCase();
+            const existingIdx = APP_STATE.absensi.findIndex(a =>
+              a.tanggal === tanggal && ((a.nis || a.namaMurid.toLowerCase()) === idRec)
+            );
+            const itemBaru = {
+              tanggal,
+              nis: rec.nis,
+              namaMurid: rec.namaMurid,
+              kelas: rec.kelas,
+              pembimbing: rec.pembimbing,
+              status: rec.status,
+              keterangan: rec.keterangan
+            };
+            if (existingIdx > -1) APP_STATE.absensi[existingIdx] = itemBaru;
+            else APP_STATE.absensi.push(itemBaru);
+          });
+          renderTabelInputAbsensi();
+          renderLaporanAbsensi();
           await refreshAllData();
           renderTabelInputAbsensi();
         }
@@ -1127,7 +1196,17 @@
       }
     }
 
-    // ================= LAPORAN KEHADIRAN (HARIAN & BULANAN) =================
+    // ================= LAPORAN KEHADIRAN (HARIAN & BULANAN + FILTER KELAS) =================
+    function isiDropdownKelasLapAbsen() {
+      const sel = document.getElementById("lapAbsenKelas");
+      if (!sel) return;
+      const currentVal = sel.value || "ALL";
+      const muridList = getMuridSesuaiRole();
+      const kelasSet = [...new Set(muridList.map(m => m.kelas).filter(Boolean))];
+      sel.innerHTML = `<option value="ALL">Semua Kelas</option>` +
+        kelasSet.map(k => `<option value="${k}" ${k === currentVal ? "selected" : ""}>${k}</option>`).join("");
+    }
+
     function toggleFilterLapAbsen() {
       const jenis = document.getElementById("lapAbsenJenis").value;
       document.getElementById("wrapLapAbsenTanggal").classList.toggle("hidden", jenis !== "HARIAN");
@@ -1138,19 +1217,26 @@
     function renderLaporanAbsensi() {
       const p = APP_STATE.profile || {};
       const namaSekolah = p.namaSekolah || "SDIT Dauroh";
-      document.getElementById("lapAbsenTitiMangsa").innerText = p.titiMangsa || "Tangerang, 17 November 2026";
+      document.getElementById("lapAbsenTitiMangsa").innerText = p.titiMangsa || `Tangerang, ${formatTanggalIndo(new Date().toISOString().split("T")[0]).replace(/^[^,]+,\s*/, "")}`;
       document.getElementById("lapAbsenKepsek").innerText = p.kepalaSekolah || "Kepala Sekolah";
       document.getElementById("lapAbsenPembimbingSign").innerText = APP_STATE.user ? APP_STATE.user.nama : "Pembimbing Tahfiz";
       document.querySelectorAll(".school-name-display").forEach(el => { el.innerText = namaSekolah; });
 
       const jenis = document.getElementById("lapAbsenJenis").value;
-      const muridList = getMuridSesuaiRole();
+      const filterKelas = document.getElementById("lapAbsenKelas").value || "ALL";
+      document.getElementById("lapAbsenSubKelas").innerText = `Kelas: ${filterKelas === "ALL" ? "Semua Kelas" : filterKelas}`;
+
+      let muridList = getMuridSesuaiRole();
+      if (filterKelas !== "ALL") {
+        muridList = muridList.filter(m => m.kelas === filterKelas);
+      }
+
       const thead = document.getElementById("theadLapAbsen");
       const tbody = document.getElementById("tbodyLapAbsen");
 
       if (jenis === "HARIAN") {
         const tgl = document.getElementById("lapAbsenTanggal").value;
-        document.getElementById("lapAbsenPeriode").innerText = `Periode Harian: ${tgl}`;
+        document.getElementById("lapAbsenPeriode").innerText = `Laporan Harian: ${formatTanggalIndo(tgl)}`;
         thead.innerHTML = `
           <tr>
             <th class="p-2 border border-slate-400">No</th>
@@ -1161,22 +1247,27 @@
             <th class="p-2 border border-slate-400">Keterangan</th>
           </tr>`;
         const mapHarian = new Map();
-        APP_STATE.absensi.forEach(a => { if (a.tanggal === tgl) mapHarian.set(a.nis || a.namaMurid, a); });
+        APP_STATE.absensi.forEach(a => {
+          if (a.tanggal === tgl) {
+            const k = a.nis || a.namaMurid.toLowerCase();
+            mapHarian.set(k, a);
+          }
+        });
         tbody.innerHTML = muridList.map((m, i) => {
-          const rec = mapHarian.get(m.nis || m.nama);
+          const rec = mapHarian.get(m.nis || m.nama.toLowerCase());
           return `
             <tr>
               <td class="p-2 border border-slate-400">${i + 1}</td>
               <td class="p-2 border border-slate-400">${m.nis}</td>
               <td class="p-2 border border-slate-400 font-semibold">${m.nama}</td>
               <td class="p-2 border border-slate-400">${m.kelas}</td>
-              <td class="p-2 border border-slate-400 font-bold">${rec ? rec.status : '-'}</td>
-              <td class="p-2 border border-slate-400">${rec ? rec.keterangan : '-'}</td>
+              <td class="p-2 border border-slate-400 font-bold">${rec && rec.status ? rec.status : '-'}</td>
+              <td class="p-2 border border-slate-400">${rec && rec.keterangan ? rec.keterangan : '-'}</td>
             </tr>`;
         }).join("");
       } else {
         const bln = document.getElementById("lapAbsenBulan").value;
-        document.getElementById("lapAbsenPeriode").innerText = `Periode Bulanan: ${bln}`;
+        document.getElementById("lapAbsenPeriode").innerText = `Laporan Bulanan: ${formatBulanIndo(bln)}`;
         thead.innerHTML = `
           <tr>
             <th class="p-2 border border-slate-400">No</th>
@@ -1191,7 +1282,8 @@
         tbody.innerHTML = muridList.map((m, i) => {
           let h = 0, iz = 0, s = 0, a = 0;
           APP_STATE.absensi.forEach(rec => {
-            if (((m.nis && rec.nis === m.nis) || rec.namaMurid === m.nama) && rec.tanggal.startsWith(bln)) {
+            const samaMurid = (m.nis && rec.nis === m.nis) || (rec.namaMurid.toLowerCase() === m.nama.toLowerCase());
+            if (samaMurid && rec.tanggal.startsWith(bln)) {
               if (rec.status === "Hadir") h++;
               else if (rec.status === "Izin") iz++;
               else if (rec.status === "Sakit") s++;
@@ -1358,7 +1450,7 @@
 
     function renderLaporanAdmin() {
       const p = APP_STATE.profile || {};
-      document.getElementById("lapMunaTitiMangsa").innerText = p.titiMangsa || "Tangerang, 17 November 2026";
+      document.getElementById("lapMunaTitiMangsa").innerText = p.titiMangsa || `Tangerang, ${formatTanggalIndo(new Date().toISOString().split("T")[0]).replace(/^[^,]+,\s*/, "")}`;
       document.getElementById("lapMunaKepsek").innerText = p.kepalaSekolah || "Kepala Sekolah";
       const kls = document.getElementById("filterLapKelas").value;
       const st = document.getElementById("filterLapStatus").value;
