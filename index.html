@@ -90,39 +90,46 @@
           <h2 class="text-lg font-extrabold text-slate-900 mb-4 border-b pb-2">Form Pendaftaran Peserta Munaqosyah</h2>
           <form id="formPendaftaran" class="space-y-5">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- SISI KIRI: Data Murid, Kelas, Pembimbing, Penguji, Juz, Progres -->
+              <!-- SISI KIRI: Pencarian & Pilih Nama Murid (tanpa kelas), Kelas, Pembimbing, Penguji, Surat, Surat Sebelumnya -->
               <div class="space-y-4">
                 <div>
                   <label class="block text-xs font-bold text-slate-600 mb-1">Pilih Nama Murid</label>
+                  <input type="text" id="daftarCariMurid" oninput="filterDropdownMurid()" placeholder="🔍 Cari nama murid..."
+                    class="w-full px-3 py-2 mb-1.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-emerald-600 outline-none" />
                   <select id="daftarSelectMurid" onchange="onPilihMuridDaftar()" required
                     class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white">
-                    <option value="">-- Pilih Murid --</option>
+                    <option value="">-- Pilih Nama Murid --</option>
                   </select>
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-600 mb-1">Kelas</label>
-                  <input type="text" id="daftarKelas" readonly class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm" />
+                  <input type="text" id="daftarKelas" readonly placeholder="Otomatis terisi..."
+                    class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm" />
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-600 mb-1">Pembimbing</label>
-                  <input type="text" id="daftarPembimbing" readonly class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm" />
+                  <input type="text" id="daftarPembimbing" readonly placeholder="Otomatis terisi..."
+                    class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm" />
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-600 mb-1">Penguji</label>
-                  <input type="text" id="daftarPenguji" readonly class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm" />
+                  <input type="text" id="daftarPenguji" readonly placeholder="Otomatis terisi..."
+                    class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm" />
                 </div>
                 <div>
-                  <label class="block text-xs font-bold text-slate-600 mb-1">Juz</label>
-                  <select id="daftarJuz" onchange="filterSuratByJuz()" required
+                  <label class="block text-xs font-bold text-slate-600 mb-1">Surat yang Diujikan</label>
+                  <input type="text" id="daftarCariSurat" oninput="filterDropdownSurat()" placeholder="🔍 Cari nama surat..."
+                    class="w-full px-3 py-2 mb-1.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-emerald-600 outline-none" />
+                  <select id="daftarSurat" required
                     class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white">
-                    <option value="">-- Pilih Juz --</option>
+                    <option value="">-- Pilih Surat --</option>
                   </select>
                 </div>
                 <div>
-                  <label class="block text-xs font-bold text-slate-600 mb-1">Progres / Surat</label>
-                  <select id="daftarSurat" required
+                  <label class="block text-xs font-bold text-slate-600 mb-1">Surat Sebelumnya</label>
+                  <select id="daftarSuratSebelumnya"
                     class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white">
-                    <option value="">-- Pilih Progres / Surat --</option>
+                    <option value="">-- Pilih Surat Sebelumnya (Opsional) --</option>
                   </select>
                 </div>
               </div>
@@ -136,12 +143,12 @@
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-600 mb-1">Catatan Akhlak</label>
-                  <textarea id="daftarCatatanAkhlak" rows="4" placeholder="Tuliskan catatan akhlak keseharian murid..."
+                  <textarea id="daftarCatatanAkhlak" rows="5" placeholder="Tuliskan catatan akhlak keseharian murid..."
                     class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm"></textarea>
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-600 mb-1">Catatan Murid</label>
-                  <textarea id="daftarCatatanMurid" rows="4" placeholder="Tuliskan catatan tambahan kesiapan hafalan murid..."
+                  <textarea id="daftarCatatanMurid" rows="5" placeholder="Tuliskan catatan tambahan kesiapan hafalan murid..."
                     class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm"></textarea>
                 </div>
               </div>
@@ -166,7 +173,7 @@
                   <th class="p-3 border-b">Jadwal Ujian</th>
                   <th class="p-3 border-b">Nama Murid</th>
                   <th class="p-3 border-b">Kelas</th>
-                  <th class="p-3 border-b">Juz / Surat</th>
+                  <th class="p-3 border-b">Surat</th>
                   <th class="p-3 border-b">Penguji</th>
                   <th class="p-3 border-b">Status</th>
                   <th class="p-3 border-b">Nilai Akhir</th>
@@ -198,7 +205,7 @@
                   <th class="p-3 border-b">Nama Murid</th>
                   <th class="p-3 border-b">Kelas</th>
                   <th class="p-3 border-b">Pembimbing</th>
-                  <th class="p-3 border-b">Juz / Surat</th>
+                  <th class="p-3 border-b">Surat</th>
                   <th class="p-3 border-b">Akhlak</th>
                   <th class="p-3 border-b">Status</th>
                   <th class="p-3 border-b text-center">Aksi</th>
@@ -488,7 +495,7 @@
                   <th class="p-2 border border-slate-400">NIS</th>
                   <th class="p-2 border border-slate-400">Nama Murid</th>
                   <th class="p-2 border border-slate-400">Kelas</th>
-                  <th class="p-2 border border-slate-400">Juz / Surat</th>
+                  <th class="p-2 border border-slate-400">Surat</th>
                   <th class="p-2 border border-slate-400">Nilai Akhir</th>
                   <th class="p-2 border border-slate-400">Predikat</th>
                   <th class="p-2 border border-slate-400">Keterangan</th>
@@ -519,7 +526,7 @@
       </div>
       <div class="bg-emerald-50 p-3 rounded-xl text-xs space-y-1">
         <p><span class="font-bold">Nama:</span> <span id="mnNama"></span> (<span id="mnKelas"></span>)</p>
-        <p><span class="font-bold">Hafalan:</span> Juz <span id="mnJuz"></span> - <span id="mnSurat"></span></p>
+        <p><span class="font-bold">Hafalan:</span> <span id="mnSurat"></span></p>
       </div>
       <form id="formSimpanNilai" class="space-y-3">
         <input type="hidden" id="mnId" />
@@ -591,7 +598,7 @@
 
   <script>
     // ================= KONFIGURASI BACKEND =================
-    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzBoJw5KiaTBKBPbh2iC6pLLjDaJUYFkPnyBpVswV0KxKbZJ3vOUtYDTkv72-o5ofGg/exec";
+    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz4LlLu5iUNCbw9hCh37IF1nPrLiKaIM6GQhJF8Oc5Krb0Q5PiqJbTA5JL01U2ygddd/exec";
 
     let APP_STATE = {
       user: null,
@@ -786,19 +793,53 @@
 
     // ================= PENDAFTARAN MUNAQOSYAH =================
     function isiDropdownPendaftaran() {
+      filterDropdownMurid();
+      filterDropdownSurat();
+      isiDropdownSuratSebelumnya();
+    }
+
+    function filterDropdownMurid() {
       const role = String(APP_STATE.user.role || "").toLowerCase();
       const namaUser = String(APP_STATE.user.nama || "").trim().toLowerCase();
-      const muridFiltered = (role === "admin")
+      const keyword = (document.getElementById("daftarCariMurid").value || "").trim().toLowerCase();
+      const currentVal = document.getElementById("daftarSelectMurid").value;
+
+      let muridFiltered = (role === "admin")
         ? APP_STATE.murid
         : APP_STATE.murid.filter(m => m.pembimbing.toLowerCase() === namaUser);
 
-      const selMurid = document.getElementById("daftarSelectMurid");
-      selMurid.innerHTML = `<option value="">-- Pilih Murid (${muridFiltered.length}) --</option>` +
-        muridFiltered.map((m, i) => `<option value="${m.nis}">${m.nama} (${m.kelas})</option>`).join("");
+      if (keyword) {
+        muridFiltered = muridFiltered.filter(m => m.nama.toLowerCase().includes(keyword));
+      }
 
-      const juzSet = [...new Set(APP_STATE.surat.map(s => s.juz).filter(Boolean))];
-      document.getElementById("daftarJuz").innerHTML = `<option value="">-- Pilih Juz --</option>` +
-        juzSet.map(j => `<option value="${j}">Juz ${j}</option>`).join("");
+      const selMurid = document.getElementById("daftarSelectMurid");
+      selMurid.innerHTML = `<option value="">-- Pilih Nama Murid (${muridFiltered.length}) --</option>` +
+        muridFiltered.map(m => `<option value="${m.nis}" ${m.nis === currentVal ? "selected" : ""}>${m.nama}</option>`).join("");
+    }
+
+    function filterDropdownSurat() {
+      const keyword = (document.getElementById("daftarCariSurat").value || "").trim().toLowerCase();
+      const currentVal = document.getElementById("daftarSurat").value;
+      const list = keyword
+        ? APP_STATE.surat.filter(s => s.namaSurat.toLowerCase().includes(keyword))
+        : APP_STATE.surat;
+
+      const selSurat = document.getElementById("daftarSurat");
+      selSurat.innerHTML = `<option value="">-- Pilih Surat (${list.length}) --</option>` +
+        list.map(s => {
+          const label = s.namaSurat + (s.progres ? ` (${s.progres})` : "");
+          return `<option value="${label}" ${label === currentVal ? "selected" : ""}>${label}</option>`;
+        }).join("");
+    }
+
+    function isiDropdownSuratSebelumnya() {
+      const selPrev = document.getElementById("daftarSuratSebelumnya");
+      const currentVal = selPrev.value;
+      selPrev.innerHTML = `<option value="">-- Pilih Surat Sebelumnya (Opsional) --</option>` +
+        APP_STATE.surat.map(s => {
+          const label = s.namaSurat + (s.progres ? ` (${s.progres})` : "");
+          return `<option value="${label}" ${label === currentVal ? "selected" : ""}>${label}</option>`;
+        }).join("");
     }
 
     function onPilihMuridDaftar() {
@@ -807,13 +848,27 @@
       document.getElementById("daftarKelas").value = m ? m.kelas : "";
       document.getElementById("daftarPembimbing").value = m ? m.pembimbing : "";
       document.getElementById("daftarPenguji").value = m ? m.penguji : "";
-    }
 
-    function filterSuratByJuz() {
-      const juz = document.getElementById("daftarJuz").value;
-      const list = APP_STATE.surat.filter(s => String(s.juz) === String(juz));
-      document.getElementById("daftarSurat").innerHTML = `<option value="">-- Pilih Progres / Surat --</option>` +
-        list.map(s => `<option value="${s.namaSurat}${s.progres ? ' (' + s.progres + ')' : ''}">${s.namaSurat}${s.progres ? ' - ' + s.progres : ''}</option>`).join("");
+      // Otomatis isi Surat Sebelumnya dari riwayat munaqosyah terakhir murid tersebut
+      const selPrev = document.getElementById("daftarSuratSebelumnya");
+      if (m) {
+        const riwayatMurid = APP_STATE.munaqosyah.filter(r => r.nis === m.nis && r.surat);
+        if (riwayatMurid.length > 0) {
+          const terakhir = riwayatMurid[riwayatMurid.length - 1].surat;
+          const adaOption = Array.from(selPrev.options).some(opt => opt.value === terakhir);
+          if (!adaOption) {
+            const optBaru = document.createElement("option");
+            optBaru.value = terakhir;
+            optBaru.textContent = terakhir;
+            selPrev.appendChild(optBaru);
+          }
+          selPrev.value = terakhir;
+        } else {
+          selPrev.value = "";
+        }
+      } else {
+        selPrev.value = "";
+      }
     }
 
     document.getElementById("formPendaftaran").addEventListener("submit", async (e) => {
@@ -827,15 +882,19 @@
       btn.innerText = "Menyimpan...";
 
       try {
+        const suratDipilih = document.getElementById("daftarSurat").value;
+        const suratPrev = document.getElementById("daftarSuratSebelumnya").value;
+        const matchedSuratObj = APP_STATE.surat.find(s => (s.namaSurat + (s.progres ? ` (${s.progres})` : "")) === suratDipilih);
+
         const payload = {
           nis: m.nis,
           namaMurid: m.nama,
           kelas: m.kelas,
           pembimbing: m.pembimbing,
           penguji: m.penguji,
-          juz: document.getElementById("daftarJuz").value,
-          progres: document.getElementById("daftarSurat").value,
-          surat: document.getElementById("daftarSurat").value,
+          juz: matchedSuratObj ? matchedSuratObj.juz : "",
+          progres: suratPrev || (matchedSuratObj ? matchedSuratObj.progres : ""),
+          surat: suratDipilih,
           nilaiAkhlak: document.getElementById("daftarNilaiAkhlak").value,
           catatanAkhlak: document.getElementById("daftarCatatanAkhlak").value,
           catatanMurid: document.getElementById("daftarCatatanMurid").value
@@ -845,6 +904,8 @@
           Swal.fire("Gagal", resp.message || "Gagal mendaftarkan murid.", "error");
         } else {
           document.getElementById("formPendaftaran").reset();
+          filterDropdownMurid();
+          filterDropdownSurat();
           await refreshAllData();
         }
       } finally {
@@ -865,7 +926,7 @@
           <td class="p-3 font-semibold">${r.jadwalUjian || r.tanggalUjian || '-'}</td>
           <td class="p-3 font-bold text-slate-900">${r.namaMurid}</td>
           <td class="p-3">${r.kelas}</td>
-          <td class="p-3">Juz ${r.juz} - ${r.surat}</td>
+          <td class="p-3">${r.surat}</td>
           <td class="p-3">${r.penguji}</td>
           <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.status === 'Selesai Dinilai' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.status}</span></td>
           <td class="p-3 font-extrabold">${r.nilaiAkhir !== "" ? r.nilaiAkhir : '-'}</td>
@@ -894,7 +955,7 @@
           <td class="p-3 font-bold">${r.namaMurid}</td>
           <td class="p-3">${r.kelas}</td>
           <td class="p-3">${r.pembimbing}</td>
-          <td class="p-3">Juz ${r.juz} - ${r.surat}</td>
+          <td class="p-3">${r.surat}</td>
           <td class="p-3 font-bold">${r.nilaiAkhlak || '-'}</td>
           <td class="p-3">${r.status}</td>
           <td class="p-3 text-center">
@@ -912,7 +973,6 @@
       document.getElementById("mnRowIndex").value = r.rowIndex;
       document.getElementById("mnNama").innerText = r.namaMurid;
       document.getElementById("mnKelas").innerText = r.kelas;
-      document.getElementById("mnJuz").innerText = r.juz;
       document.getElementById("mnSurat").innerText = r.surat;
       document.getElementById("mnKelancaran").value = r.kelancaran || "";
       document.getElementById("mnJali").value = r.jali || "";
@@ -1307,7 +1367,7 @@
           <td class="p-2 border border-slate-400">${r.nis}</td>
           <td class="p-2 border border-slate-400 font-semibold">${r.namaMurid}</td>
           <td class="p-2 border border-slate-400">${r.kelas}</td>
-          <td class="p-2 border border-slate-400">Juz ${r.juz} - ${r.surat}</td>
+          <td class="p-2 border border-slate-400">${r.surat}</td>
           <td class="p-2 border border-slate-400 font-bold text-center">${r.nilaiAkhir !== "" ? r.nilaiAkhir : '-'}</td>
           <td class="p-2 border border-slate-400 font-bold text-center">${r.predikat || '-'}</td>
           <td class="p-2 border border-slate-400">${r.keterangan || '-'}</td>
