@@ -217,7 +217,7 @@
         </div>
       </section>
 
-      <!-- 3. PANEL DAFTAR HADIR MURID (ADMIN) -->
+      <!-- 3. PANEL DAFTAR HADIR MURID (PENDAMPING & ADMIN) -->
       <section id="panelAbsensi" class="hidden space-y-6">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
           <div class="flex flex-wrap items-center justify-between gap-4 mb-4 border-b pb-4">
@@ -696,7 +696,7 @@
 
   <script>
     // ================= KONFIGURASI BACKEND =================
-    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbypK9IVhh4ckjkS1jVpoXGHBfYnkAA_9uoO8_YIGY9ZmdCKtCTiygE3N3czM9SVzRk/exec";
+    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbylEPjA3W3HY5o9lGf8Z9Rt5lI10R1_YQmIwvTLsT5cX3omFPKPK5h9d5WZ8SLvJ-cV/exec";
     const ADMIN_FALLBACK_KEY = "munaqosyah_admin_default_pass_override";
 
     let APP_STATE = {
@@ -791,7 +791,7 @@
         ];
       }
       if (norm === "Pendamping") {
-        return ["panelPendaftaran"];
+        return ["panelPendaftaran", "panelAbsensi"];
       }
       if (norm === "Penguji") {
         return ["panelPenilaian"];
@@ -988,7 +988,8 @@
         ];
       } else if (role === "Pendamping") {
         menus = [
-          { id: "panelPendaftaran", label: "📝 Pendaftaran Munaqoyah" }
+          { id: "panelPendaftaran", label: "📝 Pendaftaran Munaqoyah" },
+          { id: "panelAbsensi", label: "📋 Daftar Hadir Murid" }
         ];
       } else if (role === "Penguji") {
         menus = [
@@ -1777,7 +1778,6 @@
         if (!resp.success) {
           Swal.fire("Gagal", resp.message || "Gagal menambahkan user baru.", "error");
         } else {
-          // Pastikan password eksplisit tersimpan dengan benar apabila backend sempat mengisi default
           await callGasApi("editUser", {
             oldUsername: usernameVal,
             username: usernameVal,
