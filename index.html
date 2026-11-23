@@ -411,7 +411,9 @@
                   <th class="p-3 border-b">User</th>
                   <th class="p-3 border-b">Nama Lengkap</th>
                   <th class="p-3 border-b">No WhatsApp</th>
+                  <th class="p-3 border-b">Password</th>
                   <th class="p-3 border-b">Role</th>
+                  <th class="p-3 border-b text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody id="tbodyAdminUser" class="divide-y divide-slate-200"></tbody>
@@ -598,6 +600,48 @@
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="tutupModalNilai()" class="px-4 py-2 bg-slate-200 rounded-xl text-xs font-bold">Batal</button>
           <button type="submit" class="px-5 py-2 bg-emerald-700 text-white rounded-xl text-xs font-bold">Simpan Nilai</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL EDIT USER (ADMIN) ================= -->
+  <div id="modalEditUser" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-extrabold text-base text-slate-900">Edit Data User</h3>
+        <button onclick="tutupModalEditUser()" class="text-slate-400 hover:text-slate-700 font-bold text-lg">&times;</button>
+      </div>
+      <form id="formEditUser" class="space-y-3">
+        <input type="hidden" id="edUserOldUsername" />
+        <input type="hidden" id="edUserRowIndex" />
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">User (Username Login)</label>
+          <input type="text" id="edUserUsername" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Nama Lengkap Ustadz/ah</label>
+          <input type="text" id="edUserNama" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">No WhatsApp</label>
+          <input type="text" id="edUserWa" placeholder="628xxx" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Password</label>
+          <input type="text" id="edUserPassword" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-mono" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Role</label>
+          <select id="edUserRole" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white">
+            <option value="Pembimbing">Pembimbing</option>
+            <option value="Penguji">Penguji</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="tutupModalEditUser()" class="px-4 py-2 bg-slate-200 rounded-xl text-xs font-bold">Batal</button>
+          <button type="submit" id="btnSubmitEditUser" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold">Simpan Perubahan</button>
         </div>
       </form>
     </div>
@@ -1520,14 +1564,24 @@
         </tr>
       `).join("");
 
-      document.getElementById("tbodyAdminUser").innerHTML = APP_STATE.users.map(u => `
-        <tr>
-          <td class="p-3 font-bold">${u.username}</td>
-          <td class="p-3">${u.nama}</td>
-          <td class="p-3">${u.noWa || '-'}</td>
-          <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">${u.role}</span></td>
-        </tr>
-      `).join("");
+      document.getElementById("tbodyAdminUser").innerHTML = APP_STATE.users.map(u => {
+        const passVal = (u.password !== undefined && u.password !== null && String(u.password) !== "") ? String(u.password) : "-";
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 font-bold">${u.username}</td>
+            <td class="p-3">${u.nama}</td>
+            <td class="p-3">${u.noWa || '-'}</td>
+            <td class="p-3 font-mono text-slate-700">${passVal}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">${u.role}</span></td>
+            <td class="p-3 text-center">
+              <button type="button" onclick='bukaModalEditUser(${JSON.stringify(u).replace(/'/g, "&apos;")})'
+                class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold shadow-sm">
+                ✏️ Edit
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join("");
 
       const kelasSet = [...new Set(APP_STATE.munaqosyah.map(m => m.kelas).filter(Boolean))];
       document.getElementById("filterLapKelas").innerHTML = `<option value="ALL">Semua Kelas</option>` +
@@ -1557,6 +1611,64 @@
       });
       if (!resp.success) Swal.fire("Gagal", resp.message, "error");
       else { document.getElementById("formTambahUser").reset(); await refreshAllData(); }
+    });
+
+    function bukaModalEditUser(u) {
+      document.getElementById("edUserOldUsername").value = u.username || "";
+      document.getElementById("edUserRowIndex").value = u.rowIndex || "";
+      document.getElementById("edUserUsername").value = u.username || "";
+      document.getElementById("edUserNama").value = u.nama || "";
+      document.getElementById("edUserWa").value = u.noWa || "";
+      document.getElementById("edUserPassword").value = (u.password !== undefined && u.password !== null) ? String(u.password) : "";
+      document.getElementById("edUserRole").value = u.role || "Pembimbing";
+      const modal = document.getElementById("modalEditUser");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function tutupModalEditUser() {
+      const modal = document.getElementById("modalEditUser");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    document.getElementById("formEditUser").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("btnSubmitEditUser");
+      btn.disabled = true;
+      btn.innerText = "Menyimpan...";
+      try {
+        const oldUsername = document.getElementById("edUserOldUsername").value.trim();
+        const payload = {
+          oldUsername,
+          rowIndex: document.getElementById("edUserRowIndex").value,
+          username: document.getElementById("edUserUsername").value.trim(),
+          nama: document.getElementById("edUserNama").value.trim(),
+          noWa: document.getElementById("edUserWa").value.trim(),
+          password: document.getElementById("edUserPassword").value,
+          role: document.getElementById("edUserRole").value
+        };
+        const resp = await callGasApi("editUser", payload);
+        if (!resp.success) {
+          Swal.fire("Gagal", resp.message || "Gagal memperbarui data user.", "error");
+        } else {
+          if (APP_STATE.user && APP_STATE.user.username === oldUsername) {
+            APP_STATE.user.username = payload.username;
+            APP_STATE.user.nama = payload.nama;
+            APP_STATE.user.noWa = payload.noWa;
+            APP_STATE.user.role = payload.role;
+            sessionStorage.setItem("munaqosyah_user", JSON.stringify(APP_STATE.user));
+            document.getElementById("headerUserInfo").innerText = `${APP_STATE.user.nama} (${APP_STATE.user.role})`;
+          }
+          tutupModalEditUser();
+          await refreshAllData();
+        }
+      } catch (err) {
+        Swal.fire("Koneksi Gagal", "Terjadi kesalahan saat menyimpan perubahan user: " + err.message, "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Simpan Perubahan";
+      }
     });
 
     function isiFormProfile() {
