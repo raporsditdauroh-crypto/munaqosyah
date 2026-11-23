@@ -206,7 +206,7 @@
                   <th class="p-3 border-b">Kelas</th>
                   <th class="p-3 border-b">Pembimbing</th>
                   <th class="p-3 border-b">Surat</th>
-                  <th class="p-3 border-b">Akhlak</th>
+                  <th class="p-3 border-b">Nilai Akhir</th>
                   <th class="p-3 border-b">Status</th>
                   <th class="p-3 border-b text-center">Aksi</th>
                 </tr>
@@ -722,7 +722,7 @@
 
   <script>
     // ================= KONFIGURASI BACKEND =================
-    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyu2fOknMkLnkD6uCdheDQqsVZiYaVL_-TIrMmlqvNz0LsW9YpLwv1ZFXVwjE3wA1E4/exec";
+    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbylEPjA3W3HY5o9lGf8Z9Rt5lI10R1_YQmIwvTLsT5cX3omFPKPK5h9d5WZ8SLvJ-cV/exec";
     const ADMIN_FALLBACK_KEY = "munaqosyah_admin_default_pass_override";
 
     let APP_STATE = {
@@ -1275,7 +1275,7 @@
       }).join("");
     }
 
-    // ================= PENILAIAN PENGUJI (5 ASPEK PENILAIAN) =================
+    // ================= PENILAIAN PENGUJI (MENAMPILKAN NILAI AKHIR DI TABEL & 5 ASPEK DI MODAL) =================
     function renderTabelPenguji() {
       const role = normalizeRoleName(APP_STATE.user.role);
       const filterStatus = document.getElementById("filterStatusUjian").value;
@@ -1290,7 +1290,7 @@
 
       document.getElementById("tbodyPenguji").innerHTML = rows.map(r => {
         const jadwalTampil = r.jadwalUjianIndo || formatTanggalIndo(r.jadwalUjian || r.tanggalUjian);
-        const akhlakTampil = (r.nilaiAkhlak !== "" && r.nilaiAkhlak !== undefined && r.nilaiAkhlak !== null) ? r.nilaiAkhlak : "-";
+        const nilaiAkhirTampil = (r.nilaiAkhir !== "" && r.nilaiAkhir !== undefined && r.nilaiAkhir !== null) ? r.nilaiAkhir : "-";
         return `
           <tr class="hover:bg-slate-50">
             <td class="p-3 font-semibold text-emerald-900">${jadwalTampil}</td>
@@ -1298,7 +1298,7 @@
             <td class="p-3">${r.kelas}</td>
             <td class="p-3">${r.pembimbing}</td>
             <td class="p-3">${r.surat || '-'}</td>
-            <td class="p-3 font-bold">${akhlakTampil}</td>
+            <td class="p-3 font-extrabold text-emerald-800">${nilaiAkhirTampil}</td>
             <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.status === 'Selesai Dinilai' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.status}</span></td>
             <td class="p-3 text-center">
               <button onclick='bukaModalNilai(${JSON.stringify(r).replace(/'/g, "&apos;")})'
