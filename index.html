@@ -283,7 +283,7 @@
         </div>
       </section>
 
-      <!-- 4. PANEL LAPORAN KEHADIRAN (ADMIN) -->
+      <!-- 4. PANEL LAPORAN KEHADIRAN (PENDAMPING & ADMIN) -->
       <section id="panelLaporanAbsensi" class="hidden space-y-6">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 no-print">
           <div class="flex flex-wrap items-end justify-between gap-4">
@@ -730,9 +730,21 @@
       return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     }
 
+    function normalizeIsoDate(raw) {
+      if (!raw) return "";
+      const s = String(raw).trim();
+      const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (m) return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
+      const d = new Date(s);
+      if (!isNaN(d.getTime())) {
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      }
+      return s;
+    }
+
     function formatTanggalIndo(isoStr) {
       if (!isoStr) return "-";
-      const s = String(isoStr).trim();
+      const s = normalizeIsoDate(isoStr);
       const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
       if (!m) return s;
       const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0);
@@ -791,7 +803,7 @@
         ];
       }
       if (norm === "Pendamping") {
-        return ["panelPendaftaran", "panelAbsensi"];
+        return ["panelPendaftaran", "panelAbsensi", "panelLaporanAbsensi"];
       }
       if (norm === "Penguji") {
         return ["panelPenilaian"];
@@ -989,7 +1001,8 @@
       } else if (role === "Pendamping") {
         menus = [
           { id: "panelPendaftaran", label: "📝 Pendaftaran Munaqoyah" },
-          { id: "panelAbsensi", label: "📋 Daftar Hadir Murid" }
+          { id: "panelAbsensi", label: "📋 Daftar Hadir Murid" },
+          { id: "panelLaporanAbsensi", label: "📊 Laporan Kehadiran" }
         ];
       } else if (role === "Penguji") {
         menus = [
@@ -1055,7 +1068,9 @@
       APP_STATE.surat = resp.surat || [];
       APP_STATE.users = resp.users || [];
       APP_STATE.munaqosyah = resp.munaqosyah || [];
-      APP_STATE.absensi = resp.absensi || [];
+      APP_STATE.absensi = (resp.absensi || []).map(a => Object.assign({}, a, {
+        tanggal: normalizeIsoDate(a.tanggal)
+      }));
       if (resp.profile) APP_STATE.profile = Object.assign(APP_STATE.profile, resp.profile);
 
       // Sinkronkan data user aktif bila diperbarui di database
@@ -1355,11 +1370,12 @@
     }
 
     function isTanggalAbsensiSudahTersimpan(tglIso, muridList) {
-      if (!tglIso || !Array.isArray(APP_STATE.absensi) || APP_STATE.absensi.length === 0) return false;
+      const targetIso = normalizeIsoDate(tglIso);
+      if (!targetIso || !Array.isArray(APP_STATE.absensi) || APP_STATE.absensi.length === 0) return false;
       const nisSet = new Set(muridList.map(m => String(m.nis || "").trim()).filter(Boolean));
       const namaSet = new Set(muridList.map(m => String(m.nama || "").trim().toLowerCase()).filter(Boolean));
       return APP_STATE.absensi.some(a => {
-        if (String(a.tanggal || "").trim() !== tglIso || !String(a.status || "").trim()) return false;
+        if (normalizeIsoDate(a.tanggal) !== targetIso || !String(a.status || "").trim()) return false;
         const aNis = String(a.nis || "").trim();
         const aNama = String(a.namaMurid || "").trim().toLowerCase();
         return (aNis && nisSet.has(aNis)) || (aNama && namaSet.has(aNama));
@@ -1367,7 +1383,7 @@
     }
 
     function renderTabelInputAbsensi() {
-      const tgl = document.getElementById("absensiTanggal").value;
+      const tgl = normalizeIsoDate(document.getElementById("absensiTanggal").value);
       const todayIso = getTodayLocalIso();
       const labelHariIni = (tgl === todayIso) ? " (Hari Ini)" : "";
       document.getElementById("absensiTanggalIndoLabel").innerText = `${formatTanggalIndo(tgl)}${labelHariIni}`;
@@ -1377,7 +1393,7 @@
       const absenMapByNama = new Map();
 
       APP_STATE.absensi.forEach(a => {
-        if (String(a.tanggal || "").trim() === tgl) {
+        if (normalizeIsoDate(a.tanggal) === tgl) {
           if (a.nis) absenMapByNis.set(String(a.nis).trim(), a);
           if (a.namaMurid) absenMapByNama.set(String(a.namaMurid).trim().toLowerCase(), a);
         }
@@ -1433,8 +1449,8 @@
         const mNis = String(m.nis || "").trim();
         const mNamaLow = String(m.nama || "").trim().toLowerCase();
         const ex = (mNis && absenMapByNis.get(mNis)) || absenMapByNama.get(mNamaLow);
-        const st = ex ? ex.status : "";
-        const ket = ex ? ex.keterangan : "";
+        const st = ex ? String(ex.status || "").trim() : "";
+        const ket = ex ? String(ex.keterangan || "").trim() : "";
         const badgeCls = getBadgeClassStatusAbsen(st);
 
         return `
@@ -1472,7 +1488,7 @@
     }
 
     async function handleSimpanAbsensi() {
-      const tanggal = document.getElementById("absensiTanggal").value;
+      const tanggal = normalizeIsoDate(document.getElementById("absensiTanggal").value);
       const allMuridRole = getMuridSesuaiRole();
       const sudahTersimpan = isTanggalAbsensiSudahTersimpan(tanggal, allMuridRole);
 
@@ -1493,7 +1509,7 @@
             kelas: row.dataset.kelas,
             pembimbing: row.dataset.pembimbing,
             status,
-            keterangan: row.querySelector(".absen-ket").value
+            keterangan: row.querySelector(".absen-ket").value.trim()
           });
         }
       });
@@ -1516,7 +1532,7 @@
             const recNis = String(rec.nis || "").trim();
             const recNamaLow = String(rec.namaMurid || "").trim().toLowerCase();
             const existingIdx = APP_STATE.absensi.findIndex(a => {
-              if (String(a.tanggal || "").trim() !== tanggal) return false;
+              if (normalizeIsoDate(a.tanggal) !== tanggal) return false;
               const aNis = String(a.nis || "").trim();
               const aNamaLow = String(a.namaMurid || "").trim().toLowerCase();
               return (recNis && aNis === recNis) || (recNamaLow && aNamaLow === recNamaLow);
@@ -1591,7 +1607,7 @@
       const tbody = document.getElementById("tbodyLapAbsen");
 
       if (jenis === "HARIAN") {
-        const tgl = document.getElementById("lapAbsenTanggal").value;
+        const tgl = normalizeIsoDate(document.getElementById("lapAbsenTanggal").value);
         document.getElementById("lapAbsenPeriode").innerText = `Laporan Harian: ${formatTanggalIndo(tgl)}`;
         thead.innerHTML = `
           <tr>
@@ -1605,7 +1621,7 @@
         const mapByNis = new Map();
         const mapByNama = new Map();
         APP_STATE.absensi.forEach(a => {
-          if (String(a.tanggal || "").trim() === tgl) {
+          if (normalizeIsoDate(a.tanggal) === tgl) {
             if (a.nis) mapByNis.set(String(a.nis).trim(), a);
             if (a.namaMurid) mapByNama.set(String(a.namaMurid).trim().toLowerCase(), a);
           }
@@ -1614,18 +1630,20 @@
           const mNis = String(m.nis || "").trim();
           const mNamaLow = String(m.nama || "").trim().toLowerCase();
           const rec = (mNis && mapByNis.get(mNis)) || mapByNama.get(mNamaLow);
+          const statusTampil = (rec && String(rec.status || "").trim() !== "") ? String(rec.status).trim() : "-";
+          const ketTampil = (rec && String(rec.keterangan || "").trim() !== "") ? String(rec.keterangan).trim() : "-";
           return `
             <tr>
               <td class="p-2 border border-slate-400">${i + 1}</td>
               <td class="p-2 border border-slate-400">${m.nis}</td>
               <td class="p-2 border border-slate-400 font-semibold">${m.nama}</td>
               <td class="p-2 border border-slate-400">${m.kelas}</td>
-              <td class="p-2 border border-slate-400 font-bold">${rec && rec.status ? rec.status : '-'}</td>
-              <td class="p-2 border border-slate-400">${rec && rec.keterangan ? rec.keterangan : '-'}</td>
+              <td class="p-2 border border-slate-400 font-bold">${statusTampil}</td>
+              <td class="p-2 border border-slate-400">${ketTampil}</td>
             </tr>`;
         }).join("");
       } else {
-        const bln = document.getElementById("lapAbsenBulan").value;
+        const bln = String(document.getElementById("lapAbsenBulan").value || "").trim();
         document.getElementById("lapAbsenPeriode").innerText = `Laporan Bulanan: ${formatBulanIndo(bln)}`;
         thead.innerHTML = `
           <tr>
@@ -1644,11 +1662,12 @@
           const mNamaLow = String(m.nama || "").trim().toLowerCase();
           APP_STATE.absensi.forEach(rec => {
             const samaMurid = (mNis && String(rec.nis || "").trim() === mNis) || (String(rec.namaMurid || "").trim().toLowerCase() === mNamaLow);
-            if (samaMurid && String(rec.tanggal || "").startsWith(bln)) {
-              if (rec.status === "Hadir") h++;
-              else if (rec.status === "Izin") iz++;
-              else if (rec.status === "Sakit") s++;
-              else if (rec.status === "Alpa") a++;
+            if (samaMurid && normalizeIsoDate(rec.tanggal).startsWith(bln)) {
+              const stRec = String(rec.status || "").trim();
+              if (stRec === "Hadir") h++;
+              else if (stRec === "Izin") iz++;
+              else if (stRec === "Sakit") s++;
+              else if (stRec === "Alpa") a++;
             }
           });
           return `
