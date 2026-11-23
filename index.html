@@ -84,7 +84,7 @@
     <!-- KONTEN UTAMA -->
     <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-1 space-y-6">
 
-      <!-- 1. PANEL PENDAFTARAN MUNAQOSYAH (PEMBIMBING & ADMIN) -->
+      <!-- 1. PANEL PENDAFTARAN MUNAQOSYAH (PENDAMPING & ADMIN) -->
       <section id="panelPendaftaran" class="hidden space-y-6">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
           <h2 class="text-lg font-extrabold text-slate-900 mb-4 border-b pb-2">Form Pendaftaran Peserta Munaqosyah</h2>
@@ -217,7 +217,7 @@
         </div>
       </section>
 
-      <!-- 3. PANEL DAFTAR HADIR MURID (PEMBIMBING & ADMIN) -->
+      <!-- 3. PANEL DAFTAR HADIR MURID (ADMIN) -->
       <section id="panelAbsensi" class="hidden space-y-6">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
           <div class="flex flex-wrap items-center justify-between gap-4 mb-4 border-b pb-4">
@@ -283,7 +283,7 @@
         </div>
       </section>
 
-      <!-- 4. PANEL LAPORAN KEHADIRAN (PEMBIMBING & ADMIN) -->
+      <!-- 4. PANEL LAPORAN KEHADIRAN (ADMIN) -->
       <section id="panelLaporanAbsensi" class="hidden space-y-6">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 no-print">
           <div class="flex flex-wrap items-end justify-between gap-4">
@@ -387,23 +387,42 @@
       <section id="panelAdminUser" class="hidden space-y-6">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
           <h2 class="text-lg font-extrabold text-slate-900 mb-4">Input User Aplikasi</h2>
-          <form id="formTambahUser" class="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <input type="text" id="inUserUsername" required placeholder="User (untuk login)" class="px-3 py-2.5 rounded-xl border border-slate-300 text-xs" />
-            <input type="text" id="inUserNama" required placeholder="Nama Lengkap Ustadz/ah" class="px-3 py-2.5 rounded-xl border border-slate-300 text-xs" />
-            <input type="text" id="inUserWa" placeholder="No WhatsApp (628xxx)" class="px-3 py-2.5 rounded-xl border border-slate-300 text-xs" />
-            <select id="inUserRole" required class="px-3 py-2.5 rounded-xl border border-slate-300 text-xs bg-white">
-              <option value="Pembimbing">Pembimbing</option>
-              <option value="Penguji">Penguji</option>
-              <option value="Admin">Admin</option>
-            </select>
-            <div class="md:col-span-4 flex justify-end">
-              <button type="submit" class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs">+ Simpan User Baru (Pass: 1234567890)</button>
+          <form id="formTambahUser" class="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">User (ID Login)</label>
+              <input type="text" id="inUserUsername" required placeholder="Username login" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Nama Lengkap</label>
+              <input type="text" id="inUserNama" required placeholder="Nama Lengkap Ustadz/ah" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">No WhatsApp</label>
+              <input type="text" id="inUserWa" placeholder="628xxx" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Password</label>
+              <input type="text" id="inUserPassword" required placeholder="Masukkan password user" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-mono" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Role</label>
+              <select id="inUserRole" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs bg-white">
+                <option value="Pendamping">Pendamping</option>
+                <option value="Penguji">Penguji</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </div>
+            <div class="md:col-span-5 flex justify-end pt-1">
+              <button type="submit" id="btnSubmitTambahUser" class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs">+ Simpan User Baru</button>
             </div>
           </form>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-          <h3 class="text-base font-extrabold text-slate-900 mb-3">Daftar Pengguna Terdaftar</h3>
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h3 class="text-base font-extrabold text-slate-900">Daftar Pengguna Terdaftar</h3>
+            <span class="text-[11px] text-slate-500">Perubahan password mandiri oleh user otomatis terpantau di tabel ini.</span>
+          </div>
           <div class="overflow-x-auto">
             <table class="w-full text-xs text-left border-collapse">
               <thead class="bg-slate-100 uppercase">
@@ -634,7 +653,7 @@
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">Role</label>
           <select id="edUserRole" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white">
-            <option value="Pembimbing">Pembimbing</option>
+            <option value="Pendamping">Pendamping</option>
             <option value="Penguji">Penguji</option>
             <option value="Admin">Admin</option>
           </select>
@@ -647,10 +666,13 @@
     </div>
   </div>
 
-  <!-- ================= MODAL GANTI PASSWORD ================= -->
+  <!-- ================= MODAL GANTI PASSWORD MANDIRI ================= -->
   <div id="modalGantiPassword" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
-      <h3 class="font-extrabold text-base text-slate-900">Ganti Password</h3>
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-extrabold text-base text-slate-900">Ganti Password</h3>
+        <button onclick="tutupModalGantiPassword()" class="text-slate-400 hover:text-slate-700 font-bold text-lg">&times;</button>
+      </div>
       <form id="formGantiPassword" class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">Password Lama</label>
@@ -660,9 +682,13 @@
           <label class="block text-xs font-bold text-slate-600 mb-1">Password Baru</label>
           <input type="password" id="gpBaru" required class="w-full px-3 py-2 rounded-xl border text-sm" />
         </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Konfirmasi Password Baru</label>
+          <input type="password" id="gpKonfirmasi" required class="w-full px-3 py-2 rounded-xl border text-sm" />
+        </div>
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="tutupModalGantiPassword()" class="px-4 py-2 bg-slate-200 rounded-xl text-xs font-bold">Batal</button>
-          <button type="submit" class="px-4 py-2 bg-emerald-700 text-white rounded-xl text-xs font-bold">Simpan Password</button>
+          <button type="submit" id="btnSubmitGantiPassword" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold">Simpan Password</button>
         </div>
       </form>
     </div>
@@ -671,6 +697,7 @@
   <script>
     // ================= KONFIGURASI BACKEND =================
     const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbylEPjA3W3HY5o9lGf8Z9Rt5lI10R1_YQmIwvTLsT5cX3omFPKPK5h9d5WZ8SLvJ-cV/exec";
+    const ADMIN_FALLBACK_KEY = "munaqosyah_admin_default_pass_override";
 
     let APP_STATE = {
       user: null,
@@ -740,7 +767,38 @@
       return await res.json();
     }
 
-    // ================= HELPER FILTER NAMA PEMBIMBING / PENGUJI =================
+    // ================= HELPER NORMALISASI ROLE & FILTER NAMA =================
+    function normalizeRoleName(rawRole) {
+      const r = String(rawRole || "").trim().toLowerCase();
+      if (r === "admin" || r === "administrator") return "Admin";
+      if (r === "pendamping" || r === "pembimbing") return "Pendamping";
+      if (r === "penguji") return "Penguji";
+      return String(rawRole || "").trim();
+    }
+
+    function getAllowedPanelsForRole(rawRole) {
+      const norm = normalizeRoleName(rawRole);
+      if (norm === "Admin") {
+        return [
+          "panelPendaftaran",
+          "panelPenilaian",
+          "panelAbsensi",
+          "panelLaporanAbsensi",
+          "panelAdminMurid",
+          "panelAdminUser",
+          "panelAdminProfile",
+          "panelAdminLaporan"
+        ];
+      }
+      if (norm === "Pendamping") {
+        return ["panelPendaftaran"];
+      }
+      if (norm === "Penguji") {
+        return ["panelPenilaian"];
+      }
+      return [];
+    }
+
     function cocokNamaUser(kolomNama, userObj) {
       if (!kolomNama || !userObj) return false;
       const a = String(kolomNama).trim().toLowerCase().replace(/\s+/g, " ");
@@ -779,7 +837,6 @@
       document.getElementById("lapAbsenTanggal").value = todayIso;
       document.getElementById("lapAbsenBulan").value = todayIso.substring(0, 7);
 
-      // Pantau pergantian hari otomatis setelah pukul 23:59:59
       setInterval(cekRolloverHariBaru, 15000);
       document.addEventListener("visibilitychange", () => {
         if (!document.hidden) cekRolloverHariBaru();
@@ -802,6 +859,7 @@
       const savedUser = sessionStorage.getItem("munaqosyah_user");
       if (savedUser) {
         APP_STATE.user = JSON.parse(savedUser);
+        APP_STATE.user.role = normalizeRoleName(APP_STATE.user.role);
         await masukKeDashboard();
       }
     });
@@ -832,10 +890,56 @@
       try {
         const username = document.getElementById("loginUser").value.trim();
         const password = document.getElementById("loginPassword").value.trim();
-        const resp = await callGasApi("login", { username, password });
-        if (!resp.success) {
-          Swal.fire("Gagal Masuk", resp.message || "User atau password salah.", "error");
+        let resp = await callGasApi("login", { username, password });
+
+        // Pengecualian akun Admin default (admin123) jika belum diubah atau belum tersimpan di sheet
+        if ((!resp || !resp.success) && username.toLowerCase() === "admin") {
+          let adminInSheet = null;
+          try {
+            const allCheck = await callGasApi("getAllData");
+            if (allCheck && allCheck.success && Array.isArray(allCheck.users)) {
+              adminInSheet = allCheck.users.find(u =>
+                String(u.username || "").trim().toLowerCase() === "admin" ||
+                normalizeRoleName(u.role) === "Admin"
+              );
+            }
+          } catch (innerErr) {}
+
+          const overridePass = localStorage.getItem(ADMIN_FALLBACK_KEY);
+          if (adminInSheet && String(adminInSheet.password || "").trim() !== "") {
+            if (String(adminInSheet.password) === password) {
+              resp = {
+                success: true,
+                user: {
+                  username: adminInSheet.username || "Admin",
+                  nama: adminInSheet.nama || "Administrator",
+                  noWa: adminInSheet.noWa || "",
+                  role: "Admin",
+                  password: String(adminInSheet.password)
+                }
+              };
+            }
+          } else {
+            const expectedDefaultPass = overridePass || "admin123";
+            if (password === expectedDefaultPass) {
+              resp = {
+                success: true,
+                user: {
+                  username: adminInSheet ? (adminInSheet.username || "Admin") : "Admin",
+                  nama: adminInSheet ? (adminInSheet.nama || "Administrator") : "Administrator",
+                  noWa: adminInSheet ? (adminInSheet.noWa || "") : "",
+                  role: "Admin",
+                  password: expectedDefaultPass
+                }
+              };
+            }
+          }
+        }
+
+        if (!resp || !resp.success) {
+          Swal.fire("Gagal Masuk", (resp && resp.message) || "User atau password salah.", "error");
         } else {
+          resp.user.role = normalizeRoleName(resp.user.role);
           APP_STATE.user = resp.user;
           if (resp.profile) APP_STATE.profile = Object.assign(APP_STATE.profile, resp.profile);
           sessionStorage.setItem("munaqosyah_user", JSON.stringify(resp.user));
@@ -859,18 +963,19 @@
     async function masukKeDashboard() {
       document.getElementById("loginSection").classList.add("hidden");
       document.getElementById("appSection").classList.remove("hidden");
-      document.getElementById("headerUserInfo").innerText = `${APP_STATE.user.nama} (${APP_STATE.user.role})`;
+      const roleLabel = normalizeRoleName(APP_STATE.user.role);
+      document.getElementById("headerUserInfo").innerText = `${APP_STATE.user.nama} (${roleLabel})`;
       applySchoolNameToUI();
       bangunMenuNavigasi();
       await refreshAllData();
     }
 
     function bangunMenuNavigasi() {
-      const role = String(APP_STATE.user.role || "").toLowerCase();
+      const role = normalizeRoleName(APP_STATE.user.role);
       const nav = document.getElementById("navMenuContainer");
       let menus = [];
 
-      if (role === "admin") {
+      if (role === "Admin") {
         menus = [
           { id: "panelPendaftaran", label: "📝 Pendaftaran Munaqosyah" },
           { id: "panelPenilaian", label: "✅ Penilaian Penguji" },
@@ -881,13 +986,11 @@
           { id: "panelAdminProfile", label: "⚙️ Profile" },
           { id: "panelAdminLaporan", label: "🖨️ Laporan Munaqosyah" }
         ];
-      } else if (role === "pembimbing") {
+      } else if (role === "Pendamping") {
         menus = [
-          { id: "panelPendaftaran", label: "📝 Pendaftaran Munaqosyah" },
-          { id: "panelAbsensi", label: "📋 Daftar Hadir Murid" },
-          { id: "panelLaporanAbsensi", label: "📊 Laporan Kehadiran" }
+          { id: "panelPendaftaran", label: "📝 Pendaftaran Munaqoyah" }
         ];
-      } else {
+      } else if (role === "Penguji") {
         menus = [
           { id: "panelPenilaian", label: "✅ Penilaian Penguji" }
         ];
@@ -901,10 +1004,22 @@
 
       if (menus.length > 0) {
         bukaPanel(menus[0].id, nav.querySelector(".nav-btn"));
+      } else {
+        document.querySelectorAll("main > section").forEach(sec => sec.classList.add("hidden"));
       }
     }
 
     function bukaPanel(panelId, btnEl) {
+      if (!APP_STATE.user) return;
+      const allowedPanels = getAllowedPanelsForRole(APP_STATE.user.role);
+      if (!allowedPanels.includes(panelId)) {
+        const fallbackPanel = allowedPanels[0];
+        if (fallbackPanel && fallbackPanel !== panelId) {
+          bukaPanel(fallbackPanel, document.querySelector("#navMenuContainer .nav-btn"));
+        }
+        return;
+      }
+
       cekRolloverHariBaru();
       document.querySelectorAll("main > section").forEach(sec => sec.classList.add("hidden"));
       const target = document.getElementById(panelId);
@@ -929,6 +1044,7 @@
       }
       if (panelId === "panelAdminLaporan") renderLaporanAdmin();
       if (panelId === "panelAdminProfile") isiFormProfile();
+      if (panelId === "panelAdminUser") renderAdminTables();
     }
 
     async function refreshAllData() {
@@ -940,6 +1056,23 @@
       APP_STATE.munaqosyah = resp.munaqosyah || [];
       APP_STATE.absensi = resp.absensi || [];
       if (resp.profile) APP_STATE.profile = Object.assign(APP_STATE.profile, resp.profile);
+
+      // Sinkronkan data user aktif bila diperbarui di database
+      if (APP_STATE.user && Array.isArray(APP_STATE.users)) {
+        const freshUser = APP_STATE.users.find(u =>
+          String(u.username || "").trim().toLowerCase() === String(APP_STATE.user.username || "").trim().toLowerCase()
+        );
+        if (freshUser) {
+          APP_STATE.user.nama = freshUser.nama || APP_STATE.user.nama;
+          APP_STATE.user.noWa = freshUser.noWa || APP_STATE.user.noWa;
+          APP_STATE.user.role = normalizeRoleName(freshUser.role || APP_STATE.user.role);
+          if (freshUser.password !== undefined && freshUser.password !== "") {
+            APP_STATE.user.password = String(freshUser.password);
+          }
+          sessionStorage.setItem("munaqosyah_user", JSON.stringify(APP_STATE.user));
+          document.getElementById("headerUserInfo").innerText = `${APP_STATE.user.nama} (${APP_STATE.user.role})`;
+        }
+      }
 
       applySchoolNameToUI();
       isiDropdownPendaftaran();
@@ -954,8 +1087,8 @@
 
     // ================= PENDAFTARAN MUNAQOSYAH =================
     function getMuridSesuaiRole() {
-      const role = String(APP_STATE.user.role || "").toLowerCase();
-      return (role === "admin")
+      const role = normalizeRoleName(APP_STATE.user.role);
+      return (role === "Admin")
         ? APP_STATE.murid
         : APP_STATE.murid.filter(m => cocokNamaUser(m.pembimbing, APP_STATE.user));
     }
@@ -973,8 +1106,8 @@
       const indexedList = APP_STATE.murid
         .map((m, idx) => ({ m, idx }))
         .filter(item => {
-          const role = String(APP_STATE.user.role || "").toLowerCase();
-          if (role !== "admin" && !cocokNamaUser(item.m.pembimbing, APP_STATE.user)) return false;
+          const role = normalizeRoleName(APP_STATE.user.role);
+          if (role !== "Admin" && !cocokNamaUser(item.m.pembimbing, APP_STATE.user)) return false;
           if (keyword && !item.m.nama.toLowerCase().includes(keyword)) return false;
           return true;
         });
@@ -1077,8 +1210,8 @@
     });
 
     function renderRiwayatPendaftaran() {
-      const role = String(APP_STATE.user.role || "").toLowerCase();
-      const rows = (role === "admin")
+      const role = normalizeRoleName(APP_STATE.user.role);
+      const rows = (role === "Admin")
         ? APP_STATE.munaqosyah
         : APP_STATE.munaqosyah.filter(x => cocokNamaUser(x.pembimbing, APP_STATE.user));
 
@@ -1102,10 +1235,10 @@
 
     // ================= PENILAIAN PENGUJI =================
     function renderTabelPenguji() {
-      const role = String(APP_STATE.user.role || "").toLowerCase();
+      const role = normalizeRoleName(APP_STATE.user.role);
       const filterStatus = document.getElementById("filterStatusUjian").value;
 
-      let rows = (role === "admin")
+      let rows = (role === "Admin")
         ? APP_STATE.munaqosyah
         : APP_STATE.munaqosyah.filter(x => cocokNamaUser(x.penguji, APP_STATE.user));
 
@@ -1253,7 +1386,6 @@
       const sudahTersimpan = isTanggalAbsensiSudahTersimpan(tgl, allMuridRole);
       const isLocked = sudahTersimpan && !IS_EDITING_ABSENSI;
 
-      // Atur status visual lencana, tombol Edit, dan tombol Simpan
       const badgeStatus = document.getElementById("badgeStatusAbsensi");
       const badgeEdit = document.getElementById("badgeEditAbsensi");
       const btnTandaiSemua = document.getElementById("btnTandaiSemuaHadir");
@@ -1343,7 +1475,6 @@
       const allMuridRole = getMuridSesuaiRole();
       const sudahTersimpan = isTanggalAbsensiSudahTersimpan(tanggal, allMuridRole);
 
-      // Proteksi keras: jika sudah tersimpan dan bukan sedang dalam Mode Edit, blokir simpan
       if (sudahTersimpan && !IS_EDITING_ABSENSI) {
         renderTabelInputAbsensi();
         return;
@@ -1380,7 +1511,6 @@
         if (!resp.success) {
           Swal.fire("Gagal", resp.message || "Gagal menyimpan daftar hadir.", "error");
         } else {
-          // Sinkronkan state lokal seketika agar status & keterangan langsung terkunci dan tampil di laporan
           records.forEach(rec => {
             const recNis = String(rec.nis || "").trim();
             const recNamaLow = String(rec.namaMurid || "").trim().toLowerCase();
@@ -1403,7 +1533,6 @@
             else APP_STATE.absensi.push(itemBaru);
           });
 
-          // Sinkronkan tanggal & bulan filter di Laporan Kehadiran agar langsung ter-update
           document.getElementById("lapAbsenTanggal").value = tanggal;
           document.getElementById("lapAbsenBulan").value = tanggal.substring(0, 7);
 
@@ -1551,7 +1680,7 @@
       }).from(el).save();
     }
 
-    // ================= ADMIN: MURID, USER, PROFILE, LAPORAN =================
+    // ================= ADMIN: MURID, USER (INPUT, EDIT, HAPUS, COPY), PROFILE, LAPORAN =================
     function renderAdminTables() {
       document.getElementById("countMurid").innerText = APP_STATE.murid.length;
       document.getElementById("tbodyAdminMurid").innerHTML = APP_STATE.murid.map(m => `
@@ -1564,20 +1693,39 @@
         </tr>
       `).join("");
 
+      const overrideAdminPass = localStorage.getItem(ADMIN_FALLBACK_KEY);
       document.getElementById("tbodyAdminUser").innerHTML = APP_STATE.users.map(u => {
-        const passVal = (u.password !== undefined && u.password !== null && String(u.password) !== "") ? String(u.password) : "-";
+        const isAdminAccount = String(u.username || "").trim().toLowerCase() === "admin" || normalizeRoleName(u.role) === "Admin";
+        let passVal = (u.password !== undefined && u.password !== null && String(u.password) !== "") ? String(u.password) : "";
+        if (!passVal && isAdminAccount) {
+          passVal = overrideAdminPass || "admin123";
+        }
+        const roleDisplay = normalizeRoleName(u.role);
+        const userPayload = Object.assign({}, u, { password: passVal, role: roleDisplay });
+        const serializedUser = JSON.stringify(userPayload).replace(/'/g, "&apos;");
+
         return `
           <tr class="hover:bg-slate-50">
-            <td class="p-3 font-bold">${u.username}</td>
+            <td class="p-3 font-bold text-slate-900">${u.username}</td>
             <td class="p-3">${u.nama}</td>
             <td class="p-3">${u.noWa || '-'}</td>
-            <td class="p-3 font-mono text-slate-700">${passVal}</td>
-            <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">${u.role}</span></td>
-            <td class="p-3 text-center">
-              <button type="button" onclick='bukaModalEditUser(${JSON.stringify(u).replace(/'/g, "&apos;")})'
-                class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold shadow-sm">
-                ✏️ Edit
-              </button>
+            <td class="p-3 font-mono text-slate-800">${passVal || '-'}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">${roleDisplay}</span></td>
+            <td class="p-3">
+              <div class="flex flex-wrap items-center justify-center gap-1.5">
+                <button type="button" onclick='bukaModalEditUser(${serializedUser})'
+                  class="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold shadow-sm">
+                  ✏️ Edit
+                </button>
+                <button type="button" onclick='copyKredensialUser(${serializedUser})'
+                  class="px-2.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold shadow-sm">
+                  📋 Copy User dan Password
+                </button>
+                <button type="button" onclick='hapusUser(${serializedUser})'
+                  class="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-sm">
+                  🗑️ Hapus
+                </button>
+              </div>
             </td>
           </tr>
         `;
@@ -1603,14 +1751,52 @@
 
     document.getElementById("formTambahUser").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const resp = await callGasApi("tambahUser", {
-        username: document.getElementById("inUserUsername").value,
-        nama: document.getElementById("inUserNama").value,
-        noWa: document.getElementById("inUserWa").value,
-        role: document.getElementById("inUserRole").value
-      });
-      if (!resp.success) Swal.fire("Gagal", resp.message, "error");
-      else { document.getElementById("formTambahUser").reset(); await refreshAllData(); }
+      const usernameVal = document.getElementById("inUserUsername").value.trim();
+      const namaVal = document.getElementById("inUserNama").value.trim();
+      const noWaVal = document.getElementById("inUserWa").value.trim();
+      const passwordVal = document.getElementById("inUserPassword").value.trim();
+      const roleVal = document.getElementById("inUserRole").value;
+
+      if (!passwordVal) {
+        Swal.fire("Perhatian", "Password wajib diisi untuk setiap user baru.", "warning");
+        return;
+      }
+
+      const btn = document.getElementById("btnSubmitTambahUser");
+      btn.disabled = true;
+      btn.innerText = "Menyimpan...";
+
+      try {
+        const resp = await callGasApi("tambahUser", {
+          username: usernameVal,
+          nama: namaVal,
+          noWa: noWaVal,
+          password: passwordVal,
+          role: roleVal
+        });
+        if (!resp.success) {
+          Swal.fire("Gagal", resp.message || "Gagal menambahkan user baru.", "error");
+        } else {
+          // Pastikan password eksplisit tersimpan dengan benar apabila backend sempat mengisi default
+          await callGasApi("editUser", {
+            oldUsername: usernameVal,
+            username: usernameVal,
+            nama: namaVal,
+            noWa: noWaVal,
+            password: passwordVal,
+            role: roleVal
+          }).catch(() => {});
+
+          document.getElementById("formTambahUser").reset();
+          await refreshAllData();
+          Swal.fire("Berhasil", `User ${usernameVal} berhasil ditambahkan.`, "success");
+        }
+      } catch (err) {
+        Swal.fire("Koneksi Gagal", "Terjadi kesalahan saat menyimpan user: " + err.message, "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "+ Simpan User Baru";
+      }
     });
 
     function bukaModalEditUser(u) {
@@ -1620,7 +1806,7 @@
       document.getElementById("edUserNama").value = u.nama || "";
       document.getElementById("edUserWa").value = u.noWa || "";
       document.getElementById("edUserPassword").value = (u.password !== undefined && u.password !== null) ? String(u.password) : "";
-      document.getElementById("edUserRole").value = u.role || "Pembimbing";
+      document.getElementById("edUserRole").value = normalizeRoleName(u.role) || "Pendamping";
       const modal = document.getElementById("modalEditUser");
       modal.classList.remove("hidden");
       modal.classList.add("flex");
@@ -1639,29 +1825,45 @@
       btn.innerText = "Menyimpan...";
       try {
         const oldUsername = document.getElementById("edUserOldUsername").value.trim();
+        const newUsername = document.getElementById("edUserUsername").value.trim();
+        const newNama = document.getElementById("edUserNama").value.trim();
+        const newWa = document.getElementById("edUserWa").value.trim();
+        const newPassword = document.getElementById("edUserPassword").value.trim();
+        const newRole = document.getElementById("edUserRole").value;
+
+        if (!newPassword) {
+          Swal.fire("Perhatian", "Password tidak boleh kosong.", "warning");
+          return;
+        }
+
         const payload = {
           oldUsername,
           rowIndex: document.getElementById("edUserRowIndex").value,
-          username: document.getElementById("edUserUsername").value.trim(),
-          nama: document.getElementById("edUserNama").value.trim(),
-          noWa: document.getElementById("edUserWa").value.trim(),
-          password: document.getElementById("edUserPassword").value,
-          role: document.getElementById("edUserRole").value
+          username: newUsername,
+          nama: newNama,
+          noWa: newWa,
+          password: newPassword,
+          role: newRole
         };
         const resp = await callGasApi("editUser", payload);
         if (!resp.success) {
           Swal.fire("Gagal", resp.message || "Gagal memperbarui data user.", "error");
         } else {
-          if (APP_STATE.user && APP_STATE.user.username === oldUsername) {
-            APP_STATE.user.username = payload.username;
-            APP_STATE.user.nama = payload.nama;
-            APP_STATE.user.noWa = payload.noWa;
-            APP_STATE.user.role = payload.role;
+          if (oldUsername.toLowerCase() === "admin" || newUsername.toLowerCase() === "admin") {
+            localStorage.setItem(ADMIN_FALLBACK_KEY, newPassword);
+          }
+          if (APP_STATE.user && APP_STATE.user.username.toLowerCase() === oldUsername.toLowerCase()) {
+            APP_STATE.user.username = newUsername;
+            APP_STATE.user.nama = newNama;
+            APP_STATE.user.noWa = newWa;
+            APP_STATE.user.password = newPassword;
+            APP_STATE.user.role = normalizeRoleName(newRole);
             sessionStorage.setItem("munaqosyah_user", JSON.stringify(APP_STATE.user));
             document.getElementById("headerUserInfo").innerText = `${APP_STATE.user.nama} (${APP_STATE.user.role})`;
           }
           tutupModalEditUser();
           await refreshAllData();
+          Swal.fire("Berhasil", "Data user berhasil diperbarui.", "success");
         }
       } catch (err) {
         Swal.fire("Koneksi Gagal", "Terjadi kesalahan saat menyimpan perubahan user: " + err.message, "error");
@@ -1670,6 +1872,85 @@
         btn.innerText = "Simpan Perubahan";
       }
     });
+
+    async function hapusUser(u) {
+      if (!u || !u.username) return;
+      if (APP_STATE.user && String(u.username).trim().toLowerCase() === String(APP_STATE.user.username).trim().toLowerCase()) {
+        Swal.fire("Tidak Diizinkan", "Anda tidak dapat menghapus akun yang sedang digunakan untuk login.", "warning");
+        return;
+      }
+
+      const konfirmasi = await Swal.fire({
+        title: "Hapus Data User?",
+        html: `Apakah Anda yakin ingin menghapus user <b>${u.nama || u.username}</b> (<code>${u.username}</code>)?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#e11d48",
+        cancelButtonColor: "#64748b",
+        confirmButtonText: "Ya, Hapus User",
+        cancelButtonText: "Batal"
+      });
+
+      if (!konfirmasi.isConfirmed) return;
+
+      try {
+        const resp = await callGasApi("hapusUser", {
+          username: u.username,
+          rowIndex: u.rowIndex || ""
+        });
+        if (!resp.success) {
+          Swal.fire("Gagal", resp.message || "Gagal menghapus data user.", "error");
+        } else {
+          await refreshAllData();
+          Swal.fire("Terhapus", `User ${u.username} berhasil dihapus.`, "success");
+        }
+      } catch (err) {
+        Swal.fire("Koneksi Gagal", "Terjadi kesalahan saat menghapus user: " + err.message, "error");
+      }
+    }
+
+    async function copyKredensialUser(u) {
+      const namaSekolah = (APP_STATE.profile && APP_STATE.profile.namaSekolah) ? APP_STATE.profile.namaSekolah : "SDIT Dauroh";
+      const namaLengkap = u.nama || "-";
+      const username = u.username || "-";
+      const password = (u.password !== undefined && u.password !== null && String(u.password) !== "") ? String(u.password) : "-";
+      const role = normalizeRoleName(u.role) || "-";
+
+      const teksSalin = [
+        `Akun Aplikasi Munaqosyah ${namaSekolah}`,
+        `Nama     : ${namaLengkap}`,
+        `Role     : ${role}`,
+        `User     : ${username}`,
+        `Password : ${password}`
+      ].join("\n");
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(teksSalin);
+        } else {
+          const ta = document.createElement("textarea");
+          ta.value = teksSalin;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+        }
+
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: `User & Password (${username}) berhasil disalin ke clipboard`,
+          showConfirmButton: false,
+          timer: 2500,
+          timerProgressBar: true
+        });
+      } catch (err) {
+        Swal.fire("Info Kredensial", `<pre class="text-left text-xs bg-slate-100 p-3 rounded-lg">${teksSalin}</pre>`, "info");
+      }
+    }
 
     function isiFormProfile() {
       const p = APP_STATE.profile || {};
@@ -1784,8 +2065,9 @@
       }).from(el).save();
     }
 
-    // ================= GANTI PASSWORD =================
+    // ================= GANTI PASSWORD MANDIRI (SINKRON KE DATABASE & ADMIN) =================
     function bukaModalGantiPassword() {
+      document.getElementById("formGantiPassword").reset();
       const m = document.getElementById("modalGantiPassword");
       m.classList.remove("hidden"); m.classList.add("flex");
     }
@@ -1795,13 +2077,76 @@
     }
     document.getElementById("formGantiPassword").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const resp = await callGasApi("gantiPassword", {
-        username: APP_STATE.user.username,
-        oldPassword: document.getElementById("gpLama").value,
-        newPassword: document.getElementById("gpBaru").value
-      });
-      if (!resp.success) Swal.fire("Gagal", resp.message, "error");
-      else { document.getElementById("formGantiPassword").reset(); tutupModalGantiPassword(); }
+      const oldPassword = document.getElementById("gpLama").value.trim();
+      const newPassword = document.getElementById("gpBaru").value.trim();
+      const confirmPassword = document.getElementById("gpKonfirmasi").value.trim();
+
+      if (!newPassword) {
+        Swal.fire("Perhatian", "Password baru tidak boleh kosong.", "warning");
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        Swal.fire("Tidak Cocok", "Konfirmasi password baru tidak sesuai.", "warning");
+        return;
+      }
+
+      const btn = document.getElementById("btnSubmitGantiPassword");
+      btn.disabled = true;
+      btn.innerText = "Menyimpan...";
+
+      try {
+        let resp = await callGasApi("gantiPassword", {
+          username: APP_STATE.user.username,
+          oldPassword,
+          newPassword
+        });
+
+        // Sinkronisasi tambahan untuk akun Admin default bila belum ada di sheet atau memakai fallback admin123
+        const isAdminUser = String(APP_STATE.user.username || "").trim().toLowerCase() === "admin";
+        if ((!resp || !resp.success) && isAdminUser) {
+          const currentExpected = localStorage.getItem(ADMIN_FALLBACK_KEY) || "admin123";
+          if (oldPassword === currentExpected || (APP_STATE.user.password && oldPassword === APP_STATE.user.password)) {
+            localStorage.setItem(ADMIN_FALLBACK_KEY, newPassword);
+            await callGasApi("editUser", {
+              oldUsername: APP_STATE.user.username,
+              username: APP_STATE.user.username,
+              nama: APP_STATE.user.nama,
+              noWa: APP_STATE.user.noWa || "",
+              password: newPassword,
+              role: "Admin"
+            }).catch(() => {});
+            resp = { success: true };
+          }
+        }
+
+        if (!resp || !resp.success) {
+          Swal.fire("Gagal", (resp && resp.message) || "Password lama tidak sesuai.", "error");
+        } else {
+          if (isAdminUser) localStorage.setItem(ADMIN_FALLBACK_KEY, newPassword);
+          APP_STATE.user.password = newPassword;
+          sessionStorage.setItem("munaqosyah_user", JSON.stringify(APP_STATE.user));
+
+          // Pastikan kolom password di sheet ter-update agar langsung terpantau oleh Admin
+          await callGasApi("editUser", {
+            oldUsername: APP_STATE.user.username,
+            username: APP_STATE.user.username,
+            nama: APP_STATE.user.nama,
+            noWa: APP_STATE.user.noWa || "",
+            password: newPassword,
+            role: normalizeRoleName(APP_STATE.user.role)
+          }).catch(() => {});
+
+          document.getElementById("formGantiPassword").reset();
+          tutupModalGantiPassword();
+          await refreshAllData();
+          Swal.fire("Berhasil", "Password Anda berhasil diubah dan telah tersinkronisasi.", "success");
+        }
+      } catch (err) {
+        Swal.fire("Koneksi Gagal", "Terjadi kesalahan saat mengganti password: " + err.message, "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Simpan Password";
+      }
     });
   </script>
 </body>
