@@ -566,59 +566,85 @@
     </main>
   </div>
 
-  <!-- ================= MODAL PENILAIAN PENGUJI ================= -->
-  <div id="modalNilai" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+  <!-- ================= MODAL PENILAIAN PENGUJI (5 ASPEK + CATATAN ASPEK) ================= -->
+  <div id="modalNilai" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl my-8">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-extrabold text-base text-slate-900">Input Penilaian Munaqosyah</h3>
         <button onclick="tutupModalNilai()" class="text-slate-400 hover:text-slate-700 font-bold text-lg">&times;</button>
       </div>
-      <div class="bg-emerald-50 p-3 rounded-xl text-xs space-y-1">
+      <div class="bg-emerald-50 p-3.5 rounded-xl text-xs space-y-1 border border-emerald-200">
         <p><span class="font-bold">Nama:</span> <span id="mnNama"></span> (<span id="mnKelas"></span>)</p>
-        <p><span class="font-bold">Hafalan:</span> <span id="mnSurat"></span></p>
+        <p><span class="font-bold">Hafalan:</span> <span id="mnSurat" class="font-semibold text-emerald-900"></span></p>
+        <p id="mnWrapSuratSebelumnya" class="hidden"><span class="font-bold">Surat Sebelumnya:</span> <span id="mnSuratSebelumnya"></span></p>
+        <p id="mnWrapCatatanMurid" class="hidden"><span class="font-bold">Catatan Murid:</span> <span id="mnCatatanMurid"></span></p>
       </div>
       <form id="formSimpanNilai" class="space-y-3">
         <input type="hidden" id="mnId" />
         <input type="hidden" id="mnRowIndex" />
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Kelancaran (0-100)</label>
-            <input type="number" id="mnKelancaran" min="0" max="100" required oninput="hitungNilaiAkhirModal()" class="w-full px-3 py-2 rounded-xl border text-sm" />
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <!-- 1. Nilai Akhlak -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">1. Nilai Akhlak (0-100)</label>
+            <input type="number" id="mnAkhlak" min="0" max="100" required oninput="hitungNilaiAkhirModal()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm font-bold" />
+            <input type="text" id="mnCatatanAkhlak" placeholder="Catatan akhlak (opsional)..." class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs" />
           </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Tajwid Jali (0-100)</label>
-            <input type="number" id="mnJali" min="0" max="100" required oninput="hitungNilaiAkhirModal()" class="w-full px-3 py-2 rounded-xl border text-sm" />
+
+          <!-- 2. Kelancaran -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">2. Kelancaran (0-100)</label>
+            <input type="number" id="mnKelancaran" min="0" max="100" required oninput="hitungNilaiAkhirModal()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm font-bold" />
+            <input type="text" id="mnCatatanKelancaran" placeholder="Catatan kelancaran (opsional)..." class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs" />
           </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Tajwid Khafi (0-100)</label>
-            <input type="number" id="mnKhaf" min="0" max="100" required oninput="hitungNilaiAkhirModal()" class="w-full px-3 py-2 rounded-xl border text-sm" />
+
+          <!-- 3. Tajwid Jali -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">3. Tajwid Jali (0-100)</label>
+            <input type="number" id="mnJali" min="0" max="100" required oninput="hitungNilaiAkhirModal()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm font-bold" />
+            <input type="text" id="mnCatatanJali" placeholder="Catatan kesalahan jali (opsional)..." class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs" />
           </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Keindahan / Irama (0-100)</label>
-            <input type="number" id="mnKeindahan" min="0" max="100" required oninput="hitungNilaiAkhirModal()" class="w-full px-3 py-2 rounded-xl border text-sm" />
+
+          <!-- 4. Tajwid Khafi -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">4. Tajwid Khafi (0-100)</label>
+            <input type="number" id="mnKhaf" min="0" max="100" required oninput="hitungNilaiAkhirModal()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm font-bold" />
+            <input type="text" id="mnCatatanKhaf" placeholder="Catatan kesalahan khafi (opsional)..." class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs" />
+          </div>
+
+          <!-- 5. Keindahan / Irama -->
+          <div class="md:col-span-2 bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">5. Keindahan / Irama (0-100)</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <input type="number" id="mnKeindahan" min="0" max="100" required oninput="hitungNilaiAkhirModal()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm font-bold" />
+              <input type="text" id="mnCatatanKeindahan" placeholder="Catatan nilai keindahan (opsional)..." class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs" />
+            </div>
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-2 bg-slate-100 p-3 rounded-xl text-center">
+
+        <div class="grid grid-cols-3 gap-2 bg-slate-100 p-3 rounded-xl text-center border border-slate-200">
           <div>
-            <p class="text-[10px] text-slate-500 uppercase">Nilai Akhir</p>
+            <p class="text-[10px] text-slate-500 uppercase font-bold">Nilai Akhir</p>
             <p class="font-extrabold text-base text-emerald-700" id="mnPreviewAkhir">0</p>
           </div>
           <div>
-            <p class="text-[10px] text-slate-500 uppercase">Predikat</p>
+            <p class="text-[10px] text-slate-500 uppercase font-bold">Predikat</p>
             <p class="font-extrabold text-base text-slate-800" id="mnPreviewPredikat">-</p>
           </div>
           <div>
-            <p class="text-[10px] text-slate-500 uppercase">Keterangan</p>
+            <p class="text-[10px] text-slate-500 uppercase font-bold">Keterangan</p>
             <p class="font-extrabold text-xs text-slate-800 mt-1" id="mnPreviewKet">-</p>
           </div>
         </div>
+
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">Catatan Penguji</label>
-          <textarea id="mnCatatan" rows="2" class="w-full px-3 py-2 rounded-xl border text-xs"></textarea>
+          <textarea id="mnCatatan" rows="2" placeholder="Catatan keseluruhan dari penguji..." class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs"></textarea>
         </div>
+
         <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="tutupModalNilai()" class="px-4 py-2 bg-slate-200 rounded-xl text-xs font-bold">Batal</button>
-          <button type="submit" class="px-5 py-2 bg-emerald-700 text-white rounded-xl text-xs font-bold">Simpan Nilai</button>
+          <button type="button" onclick="tutupModalNilai()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl text-xs font-bold">Batal</button>
+          <button type="submit" id="btnSubmitSimpanNilai" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold">Simpan Nilai</button>
         </div>
       </form>
     </div>
@@ -696,7 +722,7 @@
 
   <script>
     // ================= KONFIGURASI BACKEND =================
-    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbypK9IVhh4ckjkS1jVpoXGHBfYnkAA_9uoO8_YIGY9ZmdCKtCTiygE3N3czM9SVzRk/exec";
+    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbylEPjA3W3HY5o9lGf8Z9Rt5lI10R1_YQmIwvTLsT5cX3omFPKPK5h9d5WZ8SLvJ-cV/exec";
     const ADMIN_FALLBACK_KEY = "munaqosyah_admin_default_pass_override";
 
     let APP_STATE = {
@@ -904,7 +930,6 @@
         const password = document.getElementById("loginPassword").value.trim();
         let resp = await callGasApi("login", { username, password });
 
-        // Pengecualian akun Admin default (admin123) jika belum diubah atau belum tersimpan di sheet
         if ((!resp || !resp.success) && username.toLowerCase() === "admin") {
           let adminInSheet = null;
           try {
@@ -1073,7 +1098,6 @@
       }));
       if (resp.profile) APP_STATE.profile = Object.assign(APP_STATE.profile, resp.profile);
 
-      // Sinkronkan data user aktif bila diperbarui di database
       if (APP_STATE.user && Array.isArray(APP_STATE.users)) {
         const freshUser = APP_STATE.users.find(u =>
           String(u.username || "").trim().toLowerCase() === String(APP_STATE.user.username || "").trim().toLowerCase()
@@ -1206,6 +1230,7 @@
           juz: matchedSuratObj ? matchedSuratObj.juz : "",
           progres: suratPrev || (matchedSuratObj ? matchedSuratObj.progres : ""),
           surat: suratDipilih,
+          suratSebelumnya: suratPrev,
           nilaiAkhlak: document.getElementById("daftarNilaiAkhlak").value,
           catatanAkhlak: document.getElementById("daftarCatatanAkhlak").value,
           catatanMurid: document.getElementById("daftarCatatanMurid").value
@@ -1218,6 +1243,7 @@
           filterDropdownMurid();
           filterDropdownSurat();
           await refreshAllData();
+          Swal.fire("Berhasil", `Peserta ${m.nama} berhasil didaftarkan munaqosyah.`, "success");
         }
       } finally {
         btn.disabled = false;
@@ -1249,7 +1275,7 @@
       }).join("");
     }
 
-    // ================= PENILAIAN PENGUJI =================
+    // ================= PENILAIAN PENGUJI (5 ASPEK PENILAIAN) =================
     function renderTabelPenguji() {
       const role = normalizeRoleName(APP_STATE.user.role);
       const filterStatus = document.getElementById("filterStatusUjian").value;
@@ -1264,15 +1290,16 @@
 
       document.getElementById("tbodyPenguji").innerHTML = rows.map(r => {
         const jadwalTampil = r.jadwalUjianIndo || formatTanggalIndo(r.jadwalUjian || r.tanggalUjian);
+        const akhlakTampil = (r.nilaiAkhlak !== "" && r.nilaiAkhlak !== undefined && r.nilaiAkhlak !== null) ? r.nilaiAkhlak : "-";
         return `
           <tr class="hover:bg-slate-50">
             <td class="p-3 font-semibold text-emerald-900">${jadwalTampil}</td>
             <td class="p-3 font-bold">${r.namaMurid}</td>
             <td class="p-3">${r.kelas}</td>
             <td class="p-3">${r.pembimbing}</td>
-            <td class="p-3">${r.surat}</td>
-            <td class="p-3 font-bold">${r.nilaiAkhlak || '-'}</td>
-            <td class="p-3">${r.status}</td>
+            <td class="p-3">${r.surat || '-'}</td>
+            <td class="p-3 font-bold">${akhlakTampil}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.status === 'Selesai Dinilai' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.status}</span></td>
             <td class="p-3 text-center">
               <button onclick='bukaModalNilai(${JSON.stringify(r).replace(/'/g, "&apos;")})'
                 class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold">
@@ -1285,17 +1312,47 @@
     }
 
     function bukaModalNilai(r) {
-      document.getElementById("mnId").value = r.id;
-      document.getElementById("mnRowIndex").value = r.rowIndex;
-      document.getElementById("mnNama").innerText = r.namaMurid;
-      document.getElementById("mnKelas").innerText = r.kelas;
-      document.getElementById("mnSurat").innerText = r.surat;
-      document.getElementById("mnKelancaran").value = r.kelancaran || "";
-      document.getElementById("mnJali").value = r.jali || "";
-      document.getElementById("mnKhaf").value = r.khaf || "";
-      document.getElementById("mnKeindahan").value = r.keindahan || "";
+      document.getElementById("mnId").value = r.id || "";
+      document.getElementById("mnRowIndex").value = r.rowIndex || "";
+      document.getElementById("mnNama").innerText = r.namaMurid || "-";
+      document.getElementById("mnKelas").innerText = r.kelas || "-";
+      document.getElementById("mnSurat").innerText = r.surat || "-";
+
+      const wrapPrev = document.getElementById("mnWrapSuratSebelumnya");
+      if (r.suratSebelumnya) {
+        document.getElementById("mnSuratSebelumnya").innerText = r.suratSebelumnya;
+        wrapPrev.classList.remove("hidden");
+      } else {
+        wrapPrev.classList.add("hidden");
+      }
+
+      const wrapCatMurid = document.getElementById("mnWrapCatatanMurid");
+      if (r.catatanMurid) {
+        document.getElementById("mnCatatanMurid").innerText = r.catatanMurid;
+        wrapCatMurid.classList.remove("hidden");
+      } else {
+        wrapCatMurid.classList.add("hidden");
+      }
+
+      // 5 Aspek Penilaian + Catatan Per Aspek
+      document.getElementById("mnAkhlak").value = (r.nilaiAkhlak !== "" && r.nilaiAkhlak !== undefined) ? r.nilaiAkhlak : "";
+      document.getElementById("mnCatatanAkhlak").value = r.catatanAkhlak || "";
+
+      document.getElementById("mnKelancaran").value = (r.kelancaran !== "" && r.kelancaran !== undefined) ? r.kelancaran : "";
+      document.getElementById("mnCatatanKelancaran").value = r.catatanKelancaran || "";
+
+      document.getElementById("mnJali").value = (r.jali !== "" && r.jali !== undefined) ? r.jali : "";
+      document.getElementById("mnCatatanJali").value = r.catatanJali || "";
+
+      document.getElementById("mnKhaf").value = (r.khaf !== "" && r.khaf !== undefined) ? r.khaf : "";
+      document.getElementById("mnCatatanKhaf").value = r.catatanKhaf || "";
+
+      document.getElementById("mnKeindahan").value = (r.keindahan !== "" && r.keindahan !== undefined) ? r.keindahan : "";
+      document.getElementById("mnCatatanKeindahan").value = r.catatanKeindahan || "";
+
       document.getElementById("mnCatatan").value = r.catatanPenguji || "";
       hitungNilaiAkhirModal();
+
       const modal = document.getElementById("modalNilai");
       modal.classList.remove("hidden");
       modal.classList.add("flex");
@@ -1308,15 +1365,19 @@
     }
 
     function hitungNilaiAkhirModal() {
-      const k = Number(document.getElementById("mnKelancaran").value || 0);
-      const j = Number(document.getElementById("mnJali").value || 0);
+      const ak = Number(document.getElementById("mnAkhlak").value || 0);
+      const kl = Number(document.getElementById("mnKelancaran").value || 0);
+      const jl = Number(document.getElementById("mnJali").value || 0);
       const kh = Number(document.getElementById("mnKhaf").value || 0);
       const ki = Number(document.getElementById("mnKeindahan").value || 0);
-      const avg = Math.round((k + j + kh + ki) / 4);
+
+      // Rata-rata dari 5 aspek penilaian (Nilai Akhlak, Kelancaran, Tajwid Jali, Tajwid Khafi, Keindahan)
+      const avg = Math.round((ak + kl + jl + kh + ki) / 5);
       let pred = "D", ket = "Belum Lulus";
       if (avg >= 90) { pred = "A"; ket = "Mumtaz (Lulus)"; }
       else if (avg >= 80) { pred = "B"; ket = "Jayyid Jiddan (Lulus)"; }
       else if (avg >= 70) { pred = "C"; ket = "Jayyid (Lulus)"; }
+
       document.getElementById("mnPreviewAkhir").innerText = avg;
       document.getElementById("mnPreviewPredikat").innerText = pred;
       document.getElementById("mnPreviewKet").innerText = ket;
@@ -1324,24 +1385,42 @@
 
     document.getElementById("formSimpanNilai").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const payload = {
-        id: document.getElementById("mnId").value,
-        rowIndex: document.getElementById("mnRowIndex").value,
-        kelancaran: document.getElementById("mnKelancaran").value,
-        jali: document.getElementById("mnJali").value,
-        khaf: document.getElementById("mnKhaf").value,
-        keindahan: document.getElementById("mnKeindahan").value,
-        nilaiAkhir: document.getElementById("mnPreviewAkhir").innerText,
-        predikat: document.getElementById("mnPreviewPredikat").innerText,
-        keterangan: document.getElementById("mnPreviewKet").innerText,
-        catatanPenguji: document.getElementById("mnCatatan").value
-      };
-      const resp = await callGasApi("simpanNilai", payload);
-      if (!resp.success) {
-        Swal.fire("Gagal", resp.message || "Gagal menyimpan nilai.", "error");
-      } else {
-        tutupModalNilai();
-        await refreshAllData();
+      const btn = document.getElementById("btnSubmitSimpanNilai");
+      btn.disabled = true;
+      btn.innerText = "Menyimpan...";
+
+      try {
+        const payload = {
+          id: document.getElementById("mnId").value,
+          rowIndex: document.getElementById("mnRowIndex").value,
+          nilaiAkhlak: document.getElementById("mnAkhlak").value,
+          catatanAkhlak: document.getElementById("mnCatatanAkhlak").value,
+          kelancaran: document.getElementById("mnKelancaran").value,
+          catatanKelancaran: document.getElementById("mnCatatanKelancaran").value,
+          jali: document.getElementById("mnJali").value,
+          catatanJali: document.getElementById("mnCatatanJali").value,
+          khaf: document.getElementById("mnKhaf").value,
+          catatanKhaf: document.getElementById("mnCatatanKhaf").value,
+          keindahan: document.getElementById("mnKeindahan").value,
+          catatanKeindahan: document.getElementById("mnCatatanKeindahan").value,
+          nilaiAkhir: document.getElementById("mnPreviewAkhir").innerText,
+          predikat: document.getElementById("mnPreviewPredikat").innerText,
+          keterangan: document.getElementById("mnPreviewKet").innerText,
+          catatanPenguji: document.getElementById("mnCatatan").value
+        };
+        const resp = await callGasApi("simpanNilai", payload);
+        if (!resp.success) {
+          Swal.fire("Gagal", resp.message || "Gagal menyimpan nilai.", "error");
+        } else {
+          tutupModalNilai();
+          await refreshAllData();
+          Swal.fire("Berhasil", "Penilaian munaqosyah berhasil disimpan.", "success");
+        }
+      } catch (err) {
+        Swal.fire("Koneksi Gagal", "Terjadi kesalahan saat menyimpan penilaian: " + err.message, "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Simpan Nilai";
       }
     });
 
@@ -2120,7 +2199,6 @@
           newPassword
         });
 
-        // Sinkronisasi tambahan untuk akun Admin default bila belum ada di sheet atau memakai fallback admin123
         const isAdminUser = String(APP_STATE.user.username || "").trim().toLowerCase() === "admin";
         if ((!resp || !resp.success) && isAdminUser) {
           const currentExpected = localStorage.getItem(ADMIN_FALLBACK_KEY) || "admin123";
@@ -2145,7 +2223,6 @@
           APP_STATE.user.password = newPassword;
           sessionStorage.setItem("munaqosyah_user", JSON.stringify(APP_STATE.user));
 
-          // Pastikan kolom password di sheet ter-update agar langsung terpantau oleh Admin
           await callGasApi("editUser", {
             oldUsername: APP_STATE.user.username,
             username: APP_STATE.user.username,
