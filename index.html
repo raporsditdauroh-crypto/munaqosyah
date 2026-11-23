@@ -1275,7 +1275,7 @@
       }).join("");
     }
 
-    // ================= PENILAIAN PENGUJI (MENAMPILKAN NILAI AKHIR DI TABEL & 5 ASPEK DI MODAL) =================
+    // ================= PENILAIAN PENGUJI (MENAMPILKAN NILAI AKHIR DI TABEL & AKUMULASI 5 ASPEK DI MODAL) =================
     function renderTabelPenguji() {
       const role = normalizeRoleName(APP_STATE.user.role);
       const filterStatus = document.getElementById("filterStatusUjian").value;
@@ -1371,14 +1371,14 @@
       const kh = Number(document.getElementById("mnKhaf").value || 0);
       const ki = Number(document.getElementById("mnKeindahan").value || 0);
 
-      // Rata-rata dari 5 aspek penilaian (Nilai Akhlak, Kelancaran, Tajwid Jali, Tajwid Khafi, Keindahan)
-      const avg = Math.round((ak + kl + jl + kh + ki) / 5);
+      // Akumulasi (penjumlahan) dari 5 aspek penilaian: Nilai Akhlak + Kelancaran + Tajwid Jali + Tajwid Khafi + Keindahan
+      const totalNilai = ak + kl + jl + kh + ki;
       let pred = "D", ket = "Belum Lulus";
-      if (avg >= 90) { pred = "A"; ket = "Mumtaz (Lulus)"; }
-      else if (avg >= 80) { pred = "B"; ket = "Jayyid Jiddan (Lulus)"; }
-      else if (avg >= 70) { pred = "C"; ket = "Jayyid (Lulus)"; }
+      if (totalNilai >= 90) { pred = "A"; ket = "Mumtaz (Lulus)"; }
+      else if (totalNilai >= 80) { pred = "B"; ket = "Jayyid Jiddan (Lulus)"; }
+      else if (totalNilai >= 70) { pred = "C"; ket = "Jayyid (Lulus)"; }
 
-      document.getElementById("mnPreviewAkhir").innerText = avg;
+      document.getElementById("mnPreviewAkhir").innerText = totalNilai;
       document.getElementById("mnPreviewPredikat").innerText = pred;
       document.getElementById("mnPreviewKet").innerText = ket;
     }
